@@ -1,0 +1,74 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  html {
+    background: theme('colors.creme');
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+
+  body {
+    @apply bg-creme font-sans text-[15px] leading-relaxed text-brun;
+  }
+
+  ::selection {
+    background: theme('colors.ambre');
+    color: theme('colors.brun');
+  }
+
+  :focus-visible {
+    outline: 2px solid theme('colors.ambre');
+    outline-offset: 3px;
+  }
+
+  img {
+    -webkit-user-drag: none;
+  }
+}
+
+@layer components {
+  /* Petit label en majuscules, signature typographique du site */
+  .label {
+    @apply text-label font-medium uppercase;
+  }
+
+  .btn {
+    @apply inline-flex h-12 items-center justify-center gap-3 whitespace-nowrap rounded border px-6 text-label font-medium uppercase transition-colors duration-300;
+  }
+
+  .btn-contour {
+    @apply border-brun text-brun hover:border-ambre hover:bg-ambre;
+  }
+
+  .btn-plein {
+    @apply border-brun bg-brun text-creme hover:border-ambre hover:bg-ambre hover:text-brun;
+  }
+
+  .btn-clair {
+    @apply border-creme/40 text-creme hover:border-ambre hover:bg-ambre hover:text-brun;
+  }
+
+  /* Case carrée encadrée du header (WhatsApp, panier) */
+  .case-icone {
+    @apply relative inline-flex h-10 w-10 items-center justify-center rounded border border-brun transition-colors duration-300 hover:border-ambre hover:bg-ambre;
+  }
+
+  .lien-ambre {
+    @apply text-label font-medium uppercase text-ambre underline decoration-1 underline-offset-4 transition-colors duration-300 hover:text-brun;
+  }
+}
+
+/* Accessibilité : on coupe les animations CSS si l'utilisateur le demande */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
