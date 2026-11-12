@@ -1,37 +1,31 @@
+import { useState } from 'react'
+import { motion } from 'framer-motion'
 import { Link } from 'react-router-dom'
+import { deuxChiffres } from '../../utils/format'
 import Etoile from '../ui/Etoile'
 import Photo from '../ui/Photo'
 
-// Les pièces gravitent autour de l'amphore Zagora comme des planètes autour d'un astre.
-const ASTRE = {
-  slug: 'amphore-zagora',
-  nom: 'Amphore Zagora',
-  image: { id: '1618722060945-b87f7326995b', alt: 'Amphore en terre cuite tournée à la main' },
-}
+// Les pièces gravitent comme des planètes autour d'un astre central.
+// 1er clic sur une pièce : elle vient au centre et s'ouvre en carte. 2e clic : on entre sur sa fiche.
 
-const planete = (slug, nom, id, taille) => ({ slug, nom, taille, image: { id, alt: nom } })
+const piece = (slug, nom, court, id) => ({ slug, nom, court, image: { id, alt: nom } })
 
+// L'ordre de départ : la première pièce est au centre, les suivantes sur les orbites
+const PIECES = [
+  piece('amphore-zagora', 'Amphore Zagora', 'Zagora', '1618722060945-b87f7326995b'),
+  piece('bol-safi-emaille', 'Bol Safi émaillé', 'Bol Safi', '1552740844-4f8a8206c68d'),
+  piece('huile-argan-pure', "Huile d'argan pure", 'Argan', '1608571423539-e951b9b3871e'),
+  piece('besace-medina', 'Besace Médina', 'Besace', '1600857062241-98e5dba7f214'),
+  piece('tajine-de-sale', 'Tajine de Salé', 'Tajine', '1706793986649-5c6516491489'),
+  piece('tapis-azilal-soleil', 'Tapis Azilal Soleil', 'Azilal', '1677285193302-3d088cd0a342'),
+  piece('pouf-tan', 'Pouf Tan', 'Pouf Tan', '1690618299438-cb453b14bab3'),
+  piece('lanterne-fassia', 'Lanterne Fassia', 'Lanterne', '1778486897678-b0bd710edf5a'),
+].map((element, position) => ({ ...element, numero: deuxChiffres(position + 1) }))
+
+// Chaque orbite occupe une tranche de la liste (la position 0 est le centre)
 const ORBITES = [
-  {
-    rayon: 150,
-    duree: 38,
-    planetes: [
-      planete('bol-safi-emaille', 'Bol Safi émaillé', '1552740844-4f8a8206c68d', 64),
-      planete('huile-argan-pure', "Huile d'argan pure", '1608571423539-e951b9b3871e', 56),
-      planete('besace-medina', 'Besace Médina', '1600857062241-98e5dba7f214', 68),
-    ],
-  },
-  {
-    rayon: 238,
-    duree: 64,
-    inverse: true,
-    planetes: [
-      planete('tajine-de-sale', 'Tajine de Salé', '1706793986649-5c6516491489', 76),
-      planete('tapis-azilal-soleil', 'Tapis Azilal Soleil', '1677285193302-3d088cd0a342', 84),
-      planete('pouf-tan', 'Pouf Tan', '1690618299438-cb453b14bab3', 68),
-      planete('lanterne-fassia', 'Lanterne Fassia', '1778486897678-b0bd710edf5a', 60),
-    ],
-  },
+  { rayon: 150, duree: 38, debut: 1, fin: 4, tailles: [64, 58, 68] },
+  { rayon: 238, duree: 64, debut: 4, fin: 8, tailles: [76, 84, 68, 62], inverse: true },
 ]
 
 // Étoiles à 8 branches qui scintillent autour du système (positions en % du cadre)
@@ -46,29 +40,36 @@ const ETOILES = [
 ]
 
 const TAILLE_SYSTEME = 560
+const TAILLE_ASTRE = 116
+const LARGEUR_CARTE = 152
+const apparition = { initial: { scale: 0.5, opacity: 0 }, animate: { scale: 1, opacity: 1 } }
+const transition = { duration: 0.6, ease: [0.22, 1, 0.36, 1] }
+const CLASSE_CERCLE =
+  'block h-full w-full overflow-hidden rounded-full border-2 border-creme bg-creme transition-transform duration-500 ease-luxe hover:scale-110'
 
-function Orbite({ orbite }) {
+function Orbite({ orbite, pieces, surSelection }) {
   const sens = orbite.inverse ? 'reverse' : 'normal'
   const sensContraire = orbite.inverse ? 'normal' : 'reverse'
-  const diametre = orbite.rayon * 2
 
   return (
     <div
       className="absolute left-1/2 top-1/2 animate-tourne rounded-full border border-dashed border-creme/60"
       style={{
-        width: diametre,
-        height: diametre,
+        width: orbite.rayon * 2,
+        height: orbite.rayon * 2,
         marginLeft: -orbite.rayon,
         marginTop: -orbite.rayon,
         animationDuration: `${orbite.duree}s`,
         animationDirection: sens,
       }}
     >
-      {orbite.planetes.map((astre, position) => {
-        const angle = (360 / orbite.planetes.length) * position
+      {pieces.map((planete, position) => {
+        const angle = (360 / pieces.length) * position
+        const taille = orbite.tailles[position]
         return (
           <div
-            key={astre.slug}
+            // La clé suit l'emplacement : quand deux pièces s'échangent, seul le contenu change
+            key={position}
             className="absolute left-1/2 top-1/2"
             // On place la planète sur l'orbite, puis on annule l'angle pour qu'elle reste droite
             style={{ transform: `rotate(${angle}deg) translateX(${orbite.rayon}px) rotate(${-angle}deg)` }}
@@ -77,21 +78,25 @@ function Orbite({ orbite }) {
             <div
               className="animate-tourne"
               style={{
-                width: astre.taille,
-                height: astre.taille,
-                marginLeft: -astre.taille / 2,
-                marginTop: -astre.taille / 2,
+                width: taille,
+                height: taille,
+                marginLeft: -taille / 2,
+                marginTop: -taille / 2,
                 animationDuration: `${orbite.duree}s`,
                 animationDirection: sensContraire,
               }}
             >
-              <Link
-                to={`/produit/${astre.slug}`}
-                aria-label={`Voir ${astre.nom}`}
-                className="block h-full w-full overflow-hidden rounded-full border-2 border-creme bg-creme transition-transform duration-500 ease-luxe hover:scale-125"
+              <motion.button
+                key={planete.slug}
+                type="button"
+                onClick={() => surSelection(planete.slug)}
+                aria-label={`Mettre en avant ${planete.nom}`}
+                className={CLASSE_CERCLE}
+                transition={transition}
+                {...apparition}
               >
-                <Photo image={astre.image} sizes="96px" className="h-full w-full object-cover [filter:sepia(0.14)]" />
-              </Link>
+                <Photo image={planete.image} sizes="96px" className="h-full w-full object-cover [filter:sepia(0.14)]" />
+              </motion.button>
             </div>
           </div>
         )
@@ -100,7 +105,67 @@ function Orbite({ orbite }) {
   )
 }
 
+// L'astre central : un cercle comme les autres, qui s'ouvre en carte au premier clic
+function AstreCentral({ astre, enCarte, surOuverture }) {
+  if (!enCarte) {
+    return (
+      <motion.button
+        key={`cercle-${astre.slug}`}
+        type="button"
+        onClick={surOuverture}
+        aria-label={`Mettre en avant ${astre.nom}`}
+        className={`absolute left-1/2 top-1/2 ${CLASSE_CERCLE}`}
+        style={{ width: TAILLE_ASTRE, height: TAILLE_ASTRE, marginLeft: -TAILLE_ASTRE / 2, marginTop: -TAILLE_ASTRE / 2 }}
+        transition={transition}
+        {...apparition}
+      >
+        <Photo image={astre.image} sizes="120px" prioritaire className="h-full w-full object-cover [filter:sepia(0.14)]" />
+      </motion.button>
+    )
+  }
+
+  return (
+    <motion.div
+      key={`carte-${astre.slug}`}
+      className="absolute left-1/2 top-1/2"
+      style={{ width: LARGEUR_CARTE, marginLeft: -LARGEUR_CARTE / 2, marginTop: -112 }}
+      transition={transition}
+      {...apparition}
+    >
+      <Link
+        to={`/produit/${astre.slug}`}
+        aria-label={`Voir la fiche de ${astre.nom}`}
+        className="block rounded border border-sable bg-creme p-2 transition-transform duration-500 ease-luxe hover:scale-105"
+      >
+        <Photo image={astre.image} sizes="160px" className="aspect-[4/5] w-full rounded object-cover [filter:sepia(0.14)]" />
+        <span className="mt-2 flex justify-between gap-2 px-1 text-mini font-medium uppercase">
+          <span>{astre.court}</span>
+          <span className="text-ambre">N° {astre.numero}</span>
+        </span>
+        <span className="mt-1 block px-1 pb-1 text-[9px] uppercase tracking-[0.14em] text-cuivre">Voir la fiche →</span>
+      </Link>
+    </motion.div>
+  )
+}
+
 export default function SystemeOrbital() {
+  const [pieces, setPieces] = useState(PIECES)
+  const [enCarte, setEnCarte] = useState(false)
+  const [astre] = pieces
+
+  // La pièce choisie échange sa place avec l'astre central et s'ouvre en carte
+  const selectionner = (slug) => {
+    setPieces((actuelles) => {
+      const position = actuelles.findIndex((element) => element.slug === slug)
+      if (position <= 0) return actuelles
+      const suivantes = [...actuelles]
+      suivantes[0] = actuelles[position]
+      suivantes[position] = actuelles[0]
+      return suivantes
+    })
+    setEnCarte(true)
+  }
+
   return (
     <div className="relative shrink-0" style={{ width: TAILLE_SYSTEME, height: TAILLE_SYSTEME }}>
       {ETOILES.map((etoile) => (
@@ -118,20 +183,15 @@ export default function SystemeOrbital() {
       ))}
 
       {ORBITES.map((orbite) => (
-        <Orbite key={orbite.rayon} orbite={orbite} />
+        <Orbite
+          key={orbite.rayon}
+          orbite={orbite}
+          pieces={pieces.slice(orbite.debut, orbite.fin)}
+          surSelection={selectionner}
+        />
       ))}
 
-      {/* L'astre central : l'amphore Zagora */}
-      <Link
-        to={`/produit/${ASTRE.slug}`}
-        className="absolute left-1/2 top-1/2 -ml-[76px] -mt-[104px] block w-[152px] rounded border border-sable bg-creme p-2 transition-transform duration-500 ease-luxe hover:scale-105"
-      >
-        <Photo image={ASTRE.image} sizes="160px" prioritaire className="aspect-[4/5] w-full rounded object-cover" />
-        <span className="mt-2 flex justify-between px-1 pb-1 text-mini font-medium uppercase">
-          <span>Zagora</span>
-          <span className="text-ambre">N° 04</span>
-        </span>
-      </Link>
+      <AstreCentral astre={astre} enCarte={enCarte} surOuverture={() => setEnCarte(true)} />
     </div>
   )
 }
