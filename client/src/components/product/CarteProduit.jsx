@@ -1,6 +1,7 @@
+import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { nomCategorie } from '../../data/categories'
 import { useAjoutPanier } from '../../hooks/useAjoutPanier'
+import { selectNomCategorie } from '../../store/slices/categoriesSlice'
 import { formaterPrix } from '../../utils/format'
 import { IconeFleche } from '../ui/Icones'
 import CarrouselImages from './CarrouselImages'
@@ -8,6 +9,7 @@ import CarrouselImages from './CarrouselImages'
 // Carte produit « fiche technique luxe » : texte à gauche (~45 %), image à droite (~55 %)
 export default function CarteProduit({ produit }) {
   const ajouter = useAjoutPanier()
+  const nomCategorie = useSelector(selectNomCategorie(produit.category))
   const lienFiche = `/produit/${produit.slug}`
 
   return (
@@ -17,7 +19,7 @@ export default function CarteProduit({ produit }) {
     >
       <div className="order-2 flex flex-col p-6 sm:order-1 xl:p-8">
         <span className="w-fit rounded bg-brun px-2 py-1 text-mini font-medium uppercase text-creme">
-          {nomCategorie(produit.category)}
+          {nomCategorie}
         </span>
 
         <h3 className="mt-5 text-[28px] leading-[1.05] tracking-[-0.03em]">

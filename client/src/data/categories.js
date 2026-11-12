@@ -6,7 +6,3 @@ export const categories = [
   { _id: 'c4', name: 'Cosmétiques naturels', slug: 'cosmetiques', image: { id: '1608571423539-e951b9b3871e', alt: "Flacon ambré d'huile d'argan" } },
   { _id: 'c5', name: 'Décoration', slug: 'decoration', image: { id: '1778486897678-b0bd710edf5a', alt: 'Lanterne marocaine en métal ajouré' } },
 ]
-
-export function nomCategorie(slug) {
-  return categories.find((categorie) => categorie.slug === slug)?.name ?? slug
-}

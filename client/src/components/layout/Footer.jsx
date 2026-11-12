@@ -1,5 +1,6 @@
+import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { categories } from '../../data/categories'
+import { selectCategories } from '../../store/slices/categoriesSlice'
 import { lienWhatsApp } from '../../utils/whatsapp'
 import Etoile, { FiligraneEtoile } from '../ui/Etoile'
 import { IconeFacebook, IconeInstagram, IconeTikTok, IconeWhatsApp } from '../ui/Icones'
@@ -24,6 +25,7 @@ const classeLien = 'transition-colors duration-300 hover:text-ambre'
 
 // Footer sombre : grand logo clair, liens, réseaux sociaux et rappel « Fait main au Maroc »
 export default function Footer() {
+  const categories = useSelector(selectCategories)
   return (
     <footer className="relative overflow-hidden bg-brun text-creme">
       <FiligraneEtoile className="-bottom-40 -right-40 h-[640px] w-[640px]" />

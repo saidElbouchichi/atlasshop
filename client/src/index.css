@@ -70,6 +70,23 @@
     animation: trace-vague 0.6s theme('transitionTimingFunction.luxe');
   }
 
+  /* Tableaux sobres de l'administration */
+  .tableau {
+    @apply w-full text-left text-[14px];
+  }
+
+  .tableau th {
+    @apply border-b border-sable py-3 pr-4 text-mini font-medium uppercase text-cuivre;
+  }
+
+  .tableau td {
+    @apply border-b border-sable py-3 pr-4 align-middle;
+  }
+
+  .champ-compact {
+    @apply h-10 rounded border border-sable bg-transparent px-3 text-[14px] focus:border-brun focus:outline-none;
+  }
+
   /* Liste dont la puce est l'étoile à 8 branches du logo */
   .liste-etoiles > li {
     position: relative;

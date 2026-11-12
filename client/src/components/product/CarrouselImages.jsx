@@ -1,5 +1,6 @@
 import { useRef, useState } from 'react'
 import { deuxChiffres } from '../../utils/format'
+import { cleImage } from '../../utils/images'
 import { IconeFleche } from '../ui/Icones'
 import Photo from '../ui/Photo'
 
@@ -57,7 +58,7 @@ export default function CarrouselImages({
           style={{ transform: `translateX(-${index * 100}%)` }}
         >
           {images.map((image, position) => (
-            <div key={image.id} className="h-full min-w-full overflow-hidden" aria-hidden={position !== index}>
+            <div key={cleImage(image)} className="h-full min-w-full overflow-hidden" aria-hidden={position !== index}>
               {doitCharger(position) && (
                 <Photo
                   image={image}

@@ -26,8 +26,7 @@ npm test         # tests unitaires
 
 ## Avancement
 
-- [x] Phase 1 — étape 1 : thème, header, accueil (hero animé, cartes « fiche technique »)
-- [ ] Phase 1 — autres pages (catalogue, fiche produit, artisans, panier, checkout, compte, admin)
+- [x] Phase 1 — frontend complet avec données mockées (accueil, catalogue, fiche produit, artisans, panier, checkout, compte, admin)
 - [ ] Phase 2 — backend et branchement API
 - [ ] Phase 3 — déploiement (Vercel + Render)
 - [ ] Phase 4 — README complet et support de pitch

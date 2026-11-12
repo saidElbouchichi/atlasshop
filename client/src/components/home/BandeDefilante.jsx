@@ -1,9 +1,11 @@
-import { categories } from '../../data/categories'
+import { useSelector } from 'react-redux'
+import { selectCategories } from '../../store/slices/categoriesSlice'
 import Etoile from '../ui/Etoile'
 
 // Bande de texte défilante (marquee) avec les catégories.
 // La piste est dupliquée pour boucler sans couture ; la copie est masquée aux lecteurs d'écran.
 function Piste({ masquee = false }) {
+  const categories = useSelector(selectCategories)
   return (
     <ul className="flex shrink-0 items-center" aria-hidden={masquee}>
       {categories.map((categorie) => (

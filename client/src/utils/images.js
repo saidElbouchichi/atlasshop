@@ -1,5 +1,6 @@
-// Aide pour les photos Unsplash : format WebP, largeur adaptée et srcset.
-// En Phase 2, les images produits viendront de Cloudinary (même principe).
+// Aide pour les photos : format WebP, largeur adaptée et srcset.
+// Une image est soit une photo Unsplash { id, alt }, soit une image importée { url, alt }
+// (aperçu local de l'admin en Phase 1, Cloudinary en Phase 2).
 const BASE_UNSPLASH = 'https://images.unsplash.com/photo-'
 const LARGEURS_PAR_DEFAUT = [480, 800, 1200, 1600]
 const QUALITE = 70
@@ -11,3 +12,11 @@ export function urlPhoto(id, largeur = 800) {
 export function srcSetPhoto(id, largeurs = LARGEURS_PAR_DEFAUT) {
   return largeurs.map((largeur) => `${urlPhoto(id, largeur)} ${largeur}w`).join(', ')
 }
+
+// Attributs src / srcSet d'une image, quelle que soit sa provenance
+export function sourcesPhoto(image, largeur = 800) {
+  if (image?.url) return { src: image.url }
+  return { src: urlPhoto(image.id, largeur), srcSet: srcSetPhoto(image.id) }
+}
+
+export const cleImage = (image) => image.id ?? image.url

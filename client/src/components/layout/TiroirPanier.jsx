@@ -11,8 +11,9 @@ import {
 } from '../../store/slices/cartSlice'
 import { fermerPanier, selectPanierOuvert } from '../../store/slices/uiSlice'
 import { formaterPrix } from '../../utils/format'
-import { urlPhoto } from '../../utils/images'
+import { SelecteurQuantite } from '../ui/Formulaire'
 import { IconeFermer } from '../ui/Icones'
+import Photo from '../ui/Photo'
 
 const COURBE = [0.22, 1, 0.36, 1]
 
@@ -22,12 +23,7 @@ function LignePanier({ article }) {
 
   return (
     <li className="flex gap-4 border-b border-sable py-5">
-      <img
-        src={urlPhoto(article.image.id, 240)}
-        alt={article.image.alt}
-        loading="lazy"
-        className="h-24 w-20 shrink-0 rounded object-cover"
-      />
+      <Photo image={article.image} sizes="80px" className="h-24 w-20 shrink-0 rounded object-cover" />
       <div className="flex min-w-0 flex-1 flex-col">
         <div className="flex items-start justify-between gap-3">
           <p className="text-[17px] leading-tight tracking-[-0.01em]">{article.name}</p>
@@ -41,28 +37,8 @@ function LignePanier({ article }) {
           </button>
         </div>
         <p className="mt-1 text-ambre">{formaterPrix(article.price)}</p>
-        <div className="mt-auto flex h-8 w-fit items-center rounded border border-sable">
-          <button
-            type="button"
-            onClick={() => changer(article.qty - 1)}
-            disabled={article.qty <= 1}
-            aria-label="Diminuer la quantité"
-            className="h-full w-8 transition-colors hover:bg-sable disabled:opacity-30"
-          >
-            −
-          </button>
-          <span className="w-8 text-center text-[13px] tabular-nums" aria-live="polite">
-            {article.qty}
-          </span>
-          <button
-            type="button"
-            onClick={() => changer(article.qty + 1)}
-            disabled={article.qty >= article.stock}
-            aria-label="Augmenter la quantité"
-            className="h-full w-8 transition-colors hover:bg-sable disabled:opacity-30"
-          >
-            +
-          </button>
+        <div className="mt-auto">
+          <SelecteurQuantite valeur={article.qty} max={article.stock} surChangement={changer} />
         </div>
       </div>
     </li>
