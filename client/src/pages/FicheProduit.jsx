@@ -23,6 +23,7 @@ const CONSEILS_ENTRETIEN = {
   cosmetiques: ['Conserver à l’abri de la chaleur et de la lumière.', 'Utiliser dans les 12 mois après ouverture.', 'Refermer soigneusement après usage.'],
   decoration: ['Dépoussiérer avec un chiffon doux et sec.', 'Éviter l’humidité prolongée.', 'Ne pas utiliser de produit abrasif.'],
 }
+const NOMBRE_SIMILAIRES = 2
 const CONSEILS_PAR_DEFAUT = ['Dépoussiérer avec un chiffon doux.', 'Tenir à l’abri de l’humidité.']
 
 // Galerie sticky : grande image + vignettes
@@ -118,7 +119,10 @@ export default function FicheProduit() {
 
   if (!produit) return <PageIntrouvable />
 
-  const similaires = produits.filter((autre) => autre.category === produit.category && autre._id !== produit._id).slice(0, 2)
+  const autres = produits.filter((autre) => autre._id !== produit._id)
+  const memeCategorie = autres.filter((autre) => autre.category === produit.category)
+  const complement = autres.filter((autre) => autre.category !== produit.category && autre.isFeatured)
+  const similaires = [...memeCategorie, ...complement].slice(0, NOMBRE_SIMILAIRES)
   const conseils = CONSEILS_ENTRETIEN[produit.category] ?? CONSEILS_PAR_DEFAUT
 
   return (

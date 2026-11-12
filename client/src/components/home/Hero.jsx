@@ -5,7 +5,7 @@ import { Link } from 'react-router-dom'
 import { CLIP_CACHE, CLIP_VISIBLE, MOUVEMENT_AUTORISE } from '../../hooks/useRevelations'
 import { delaiIntro } from '../../utils/intro'
 import DiaporamaAmbiance from './DiaporamaAmbiance'
-import SystemeOrbital from './SystemeOrbital'
+import VitrineOrbitale from './VitrineOrbitale'
 import Compteur from '../ui/Compteur'
 import Etoile from '../ui/Etoile'
 import { IconeFleche } from '../ui/Icones'
@@ -169,18 +169,10 @@ export default function Hero() {
         </div>
 
         {/* Système orbital : les pièces gravitent autour de l'amphore Zagora, parmi les étoiles */}
-        <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden">
-          <div data-hero-flottant>
-            <div data-profondeur="30">
-              <div className="scale-[0.56] sm:scale-75 xl:scale-90 2xl:scale-100">
-                <SystemeOrbital />
-              </div>
-            </div>
-          </div>
-        </div>
+        <VitrineOrbitale />
 
         {/* Sceau circulaire en rotation lente */}
-        <div data-hero-fondu className="absolute right-6 top-6 z-10 lg:right-10 lg:top-10">
+        <div data-hero-fondu className="absolute right-6 top-6 z-10 lg:right-10 lg:top-10 lg:max-xl:hidden">
           <div
             data-profondeur="22"
             className="flex h-24 w-24 items-center justify-center rounded-full bg-creme/90 backdrop-blur sm:h-28 sm:w-28"

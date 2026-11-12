@@ -105,6 +105,13 @@
   }
 }
 
+/* Système orbital du hero : la rotation se met en pause au survol ou au clavier,
+   pour que les pièces soient faciles à viser */
+.systeme-orbital:hover .animate-tourne,
+.systeme-orbital:focus-within .animate-tourne {
+  animation-play-state: paused;
+}
+
 @keyframes trace-vague {
   from {
     background-size: 0% 8px;

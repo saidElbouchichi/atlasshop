@@ -7,7 +7,7 @@ import { IconeFleche } from '../ui/Icones'
 import CarrouselImages from './CarrouselImages'
 
 // Carte produit « fiche technique luxe » : texte à gauche (~45 %), image à droite (~55 %)
-export default function CarteProduit({ produit }) {
+export default function CarteProduit({ produit, className = '' }) {
   const ajouter = useAjoutPanier()
   const nomCategorie = useSelector(selectNomCategorie(produit.category))
   const lienFiche = `/produit/${produit.slug}`
@@ -15,7 +15,7 @@ export default function CarteProduit({ produit }) {
   return (
     <article
       data-carte-produit
-      className="group grid grid-cols-1 bg-beige sm:grid-cols-[45%_55%]"
+      className={`group grid grid-cols-1 bg-beige sm:grid-cols-[45%_55%] ${className}`}
     >
       <div className="order-2 flex flex-col p-6 sm:order-1 xl:p-8">
         <span className="w-fit rounded bg-brun px-2 py-1 text-mini font-medium uppercase text-creme">

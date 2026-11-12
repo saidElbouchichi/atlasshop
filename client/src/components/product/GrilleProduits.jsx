@@ -10,6 +10,7 @@ const DECALAGE_ENTRE_CARTES = 0.1
 
 // Grille catalogue : 2 grandes cartes par ligne sur desktop, 1 sur mobile.
 // Les fines lignes entre les cartes viennent du fond « sable » visible dans l'espace de 1px.
+// Si le nombre de cartes est impair, la dernière s'étend sur les deux colonnes.
 export default function GrilleProduits({ produits }) {
   const refGrille = useRef(null)
   // L'animation ne rejoue que si les produits affichés changent, pas à chaque mise à jour du store
@@ -57,9 +58,10 @@ export default function GrilleProduits({ produits }) {
       ref={refGrille}
       className="grid grid-cols-1 gap-px border border-sable bg-sable lg:grid-cols-2"
     >
-      {produits.map((produit) => (
-        <CarteProduit key={produit._id} produit={produit} />
-      ))}
+      {produits.map((produit, position) => {
+        const seuleSurSaLigne = produits.length % 2 === 1 && position === produits.length - 1
+        return <CarteProduit key={produit._id} produit={produit} className={seuleSurSaLigne ? 'lg:col-span-2' : ''} />
+      })}
     </div>
   )
 }
