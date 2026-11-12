@@ -12,6 +12,7 @@ const DEPART_SCROLL = 'top 88%'
 
 // Révèle au scroll les éléments marqués dans la section :
 //   data-reveal        -> fondu montant
+//   data-titre-mots    -> titre révélé mot par mot (voir MotsReveles)
 //   data-reveal-clip   -> révélation par clip-path (images)
 //   data-parallaxe     -> léger déplacement vertical lié au scroll
 //   data-vague         -> trait de vague SVG qui se dessine (stroke-dashoffset)
@@ -29,6 +30,16 @@ export function useRevelations(refSection) {
             duration: 1,
             ease: 'power3.out',
             scrollTrigger: { trigger: element, start: DEPART_SCROLL, once: true },
+          })
+        })
+
+        gsap.utils.toArray('[data-titre-mots]', refSection.current).forEach((titre) => {
+          gsap.from(titre.querySelectorAll('[data-mot]'), {
+            yPercent: 115,
+            duration: 1.1,
+            stagger: 0.07,
+            ease: 'power4.out',
+            scrollTrigger: { trigger: titre, start: DEPART_SCROLL, once: true },
           })
         })
 

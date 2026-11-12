@@ -7,6 +7,7 @@ import { formaterPrix } from '../../utils/format'
 import { lienWhatsApp, messageConseilProduit } from '../../utils/whatsapp'
 import CarrouselImages from '../product/CarrouselImages'
 import { IconeWhatsApp } from '../ui/Icones'
+import { MotsReveles } from '../ui/Mouvement'
 import Photo from '../ui/Photo'
 
 const IMAGE_SALON = {
@@ -76,8 +77,8 @@ export default function ProduitPhare() {
           </p>
 
           <div>
-            <h2 id="titre-phare" data-reveal className="text-titre">
-              Tapis Beni Ouarain
+            <h2 id="titre-phare" data-titre-mots className="text-titre">
+              <MotsReveles texte="Tapis Beni Ouarain" />
             </h2>
             <p data-reveal className="mt-8 max-w-md text-[16px] text-brun/80">
               Noué point par point par les tisseuses de la tribu Beni Ouarain, en laine vierge non
@@ -110,8 +111,8 @@ export default function ProduitPhare() {
 
       <div className="border-y border-sable bg-beige px-gouttiere py-20 lg:py-24">
         <div className="flex flex-col gap-4 sm:flex-row sm:items-end sm:justify-between">
-          <h3 data-reveal className="text-sous-titre">
-            Choisissez votre pièce
+          <h3 data-titre-mots className="text-sous-titre">
+            <MotsReveles texte="Choisissez votre pièce" />
           </h3>
           <p data-reveal className="label text-cuivre">
             02 formats · nouage main

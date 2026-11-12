@@ -12,13 +12,14 @@ const [admin, cliente] = utilisateursDemo
 function rendre(chemin, utilisateur = null) {
   const etatDeBase = reducerRacine(undefined, { type: '@@init' })
   const store = creerStore({ ...etatDeBase, auth: { ...etatDeBase.auth, user: utilisateur } })
-  return renderToString(
+  const html = renderToString(
     <Provider store={store}>
       <MemoryRouter initialEntries={[chemin]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <App />
       </MemoryRouter>
     </Provider>,
   )
+  return html.replace(/<[^>]+>/g, '').replace(/&#x27;/g, "'").replace(/\s+/g, ' ')
 }
 
 describe('pages publiques', () => {

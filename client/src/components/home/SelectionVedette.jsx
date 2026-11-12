@@ -5,6 +5,7 @@ import { useRevelations } from '../../hooks/useRevelations'
 import { selectProduitsVedettes } from '../../store/slices/productsSlice'
 import { deuxChiffres } from '../../utils/format'
 import GrilleProduits from '../product/GrilleProduits'
+import { MotsReveles } from '../ui/Mouvement'
 
 // Grille des produits vedettes au style « fiche technique »
 export default function SelectionVedette() {
@@ -20,8 +21,8 @@ export default function SelectionVedette() {
             <span className="h-px w-10 bg-cuivre" aria-hidden="true" />
             La sélection · {deuxChiffres(produits.length)} pièces
           </p>
-          <h2 id="titre-selection" data-reveal className="mt-6 max-w-3xl text-titre">
-            Des pièces choisies à l'atelier
+          <h2 id="titre-selection" data-titre-mots className="mt-6 max-w-3xl text-titre">
+            <MotsReveles texte="Des pièces choisies à l'atelier" />
           </h2>
         </div>
         <Link data-reveal to="/catalogue" className="lien-ambre shrink-0">

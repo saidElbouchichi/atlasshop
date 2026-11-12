@@ -8,6 +8,7 @@ import DiaporamaAmbiance from './DiaporamaAmbiance'
 import VitrineOrbitale from './VitrineOrbitale'
 import Compteur from '../ui/Compteur'
 import Etoile from '../ui/Etoile'
+import { Aimant } from '../ui/Mouvement'
 import { IconeFleche } from '../ui/Icones'
 import { SoulignementVague } from '../ui/Vague'
 
@@ -133,10 +134,12 @@ export default function Hero() {
             Tapis berbères, poteries, cuirs et soins naturels, choisis dans les ateliers de
             l'Atlas, de Fès et de Safi — et livrés partout au Maroc.
           </p>
-          <Link data-hero-cta to="/catalogue" className="btn btn-plein group h-14 shrink-0 px-8">
-            Découvrir la collection
-            <IconeFleche className="transition-transform duration-300 ease-luxe group-hover:translate-x-1" />
-          </Link>
+          <Aimant className="shrink-0">
+            <Link data-hero-cta to="/catalogue" className="btn btn-plein group h-14 w-full px-8">
+              Découvrir la collection
+              <IconeFleche className="transition-transform duration-300 ease-luxe group-hover:translate-x-1" />
+            </Link>
+          </Aimant>
         </div>
 
         <dl className="mt-10 grid grid-cols-3 border-t border-sable pt-6 lg:mt-14">
@@ -157,7 +160,7 @@ export default function Hero() {
       </div>
 
       {/* Colonne image : photo d'ambiance + éléments décoratifs en couches */}
-      <div className="relative min-h-[70svh] lg:col-span-5 lg:min-h-0">
+      <div className="relative min-h-[660px] lg:col-span-5 lg:min-h-0">
         <div data-hero-cadre className="absolute inset-0 overflow-hidden bg-sable">
           <div data-profondeur="-18" className="absolute -inset-[5%]">
             <div data-hero-photo className="relative h-full w-full">
@@ -172,7 +175,7 @@ export default function Hero() {
         <VitrineOrbitale />
 
         {/* Sceau circulaire en rotation lente */}
-        <div data-hero-fondu className="absolute right-6 top-6 z-10 lg:right-10 lg:top-10 lg:max-xl:hidden">
+        <div data-hero-fondu className="absolute right-6 top-6 z-10 hidden sm:block lg:right-10 lg:top-10 lg:hidden xl:block">
           <div
             data-profondeur="22"
             className="flex h-24 w-24 items-center justify-center rounded-full bg-creme/90 backdrop-blur sm:h-28 sm:w-28"

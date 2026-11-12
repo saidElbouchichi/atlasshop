@@ -44,7 +44,7 @@ export default function Toasts() {
   const toasts = useSelector(selectToasts)
 
   return (
-    <ul className="pointer-events-none fixed inset-x-4 bottom-4 z-[75] flex flex-col gap-2 sm:left-auto sm:right-6 sm:w-[360px]">
+    <ul className="pointer-events-none fixed inset-x-4 bottom-20 z-[75] flex flex-col gap-2 sm:left-auto sm:right-6 sm:w-[360px]">
       <AnimatePresence initial={false}>
         {toasts.map((toast) => (
           <Toast key={toast.id} toast={toast} />

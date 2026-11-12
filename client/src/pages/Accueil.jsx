@@ -1,5 +1,6 @@
 import BandeauConfiance from '../components/home/BandeauConfiance'
 import BandeDefilante from '../components/home/BandeDefilante'
+import ExplorateurCategories from '../components/home/ExplorateurCategories'
 import Hero from '../components/home/Hero'
 import ProduitPhare from '../components/home/ProduitPhare'
 import { SectionArtisans, SectionAvis, SectionNewsletter } from '../components/home/SectionsMaison'
@@ -15,9 +16,8 @@ export default function Accueil() {
       <TransitionVague />
       <BandeDefilante />
       <ProduitPhare />
-      <div className="pt-20 lg:pt-28">
-        <SeparateurEtoile />
-      </div>
+      <ExplorateurCategories />
+      <SeparateurEtoile />
       <SelectionVedette />
       <SectionArtisans />
       <SectionAvis />

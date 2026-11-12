@@ -8,6 +8,7 @@ import { estEmailValide } from '../../utils/validation'
 import Compteur from '../ui/Compteur'
 import Etoile, { FiligraneEtoile } from '../ui/Etoile'
 import { Champ, Note } from '../ui/Formulaire'
+import { MotsReveles } from '../ui/Mouvement'
 import Photo from '../ui/Photo'
 import { MotVague } from '../ui/Vague'
 
@@ -76,7 +77,7 @@ export function SectionAvis() {
         <span className="h-px w-10 bg-cuivre" aria-hidden="true" />
         Avis clients · 4,9 / 5
       </p>
-      <h2 id="titre-temoignages" data-reveal className="mt-6 max-w-3xl text-titre">Ils vivent avec nos pièces</h2>
+      <h2 id="titre-temoignages" data-titre-mots className="mt-6 max-w-3xl text-titre"><MotsReveles texte="Ils vivent avec nos pièces" /></h2>
 
       <ul className="mt-14 grid grid-cols-1 gap-px border border-sable bg-sable md:grid-cols-3">
         {temoignages.map((temoignage) => (
@@ -111,7 +112,7 @@ export function SectionNewsletter() {
       <div className="grid gap-10 lg:grid-cols-2 lg:items-end">
         <div>
           <p data-reveal className="label text-cuivre">Newsletter · -10 % sur la première commande</p>
-          <h2 id="titre-newsletter" data-reveal className="mt-6 text-titre">Les nouvelles pièces, avant tout le monde.</h2>
+          <h2 id="titre-newsletter" data-titre-mots className="mt-6 text-titre"><MotsReveles texte="Les nouvelles pièces, avant tout le monde." /></h2>
         </div>
         <form data-reveal onSubmit={soumettre} noValidate className="flex flex-col gap-3 sm:flex-row sm:items-start">
           <Champ label="Votre e-mail" type="email" autoComplete="email" placeholder="vous@exemple.ma" className="flex-1" {...champ('email')} />

@@ -16,6 +16,15 @@ export function debloquerDefilement() {
   document.documentElement.style.overflow = ''
 }
 
+// Remontée douce (bouton « retour en haut »)
+export function defilerEnHaut() {
+  if (lenis) {
+    lenis.scrollTo(0, { duration: 1.4 })
+    return
+  }
+  window.scrollTo({ top: 0, behavior: 'smooth' })
+}
+
 export function revenirEnHaut() {
   if (lenis) {
     lenis.scrollTo(0, { immediate: true, force: true })

@@ -70,7 +70,7 @@ function PanneauPiece({ astre, enCarte, surPrecedente, surSuivante }) {
           </button>
         </div>
       ) : (
-        <p className="mt-3 text-[13px] text-brun/80">Cliquez sur une pièce pour la découvrir, puis une seconde fois pour entrer.</p>
+        <p className="mt-3 text-[13px] text-brun/80">Choisissez une pièce pour la découvrir, puis une seconde fois pour entrer sur sa fiche.</p>
       )}
     </div>
   )
@@ -104,7 +104,7 @@ export default function VitrineOrbitale() {
 
   return (
     <>
-      <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden pb-[clamp(90px,12vw,150px)] lg:pb-0 lg:pt-[120px]">
+      <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden pb-[250px] sm:pb-[230px] lg:pb-0 lg:pt-[120px]">
         <div data-hero-flottant>
           <div data-profondeur="30">
             <div className="scale-[0.56] sm:scale-75 xl:scale-90 2xl:scale-100">

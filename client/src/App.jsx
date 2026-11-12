@@ -8,6 +8,7 @@ import OngletPromo from './components/layout/OngletPromo'
 import TiroirPanier from './components/layout/TiroirPanier'
 import TransitionPage from './components/layout/TransitionPage'
 import Curseur from './components/ui/Curseur'
+import { BarreProgression, RetourEnHaut } from './components/ui/Mouvement'
 import { RouteProtegee } from './components/ui/Page'
 import Toasts from './components/ui/Toasts'
 import { useDefilementFluide } from './hooks/useDefilementFluide'
@@ -53,6 +54,8 @@ export default function App() {
       <TiroirPanier />
       <Curseur />
       <Toasts />
+      <BarreProgression />
+      <RetourEnHaut />
 
       <div id="contenu">
         <AnimatePresence mode="wait" initial={false} onExitComplete={revenirEnHaut}>

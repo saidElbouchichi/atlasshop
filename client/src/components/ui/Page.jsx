@@ -3,6 +3,7 @@ import { useSelector } from 'react-redux'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useRevelations } from '../../hooks/useRevelations'
 import { selectUtilisateur } from '../../store/slices/authSlice'
+import { MotsReveles } from './Mouvement'
 
 // En-tête commun des pages intérieures : petit label, grand titre, texte d'introduction
 export function EnTetePage({ label, titre, children, compact = false }) {
@@ -18,8 +19,8 @@ export function EnTetePage({ label, titre, children, compact = false }) {
         <span className="h-px w-10 bg-cuivre" aria-hidden="true" />
         {label}
       </p>
-      <h1 data-reveal className={`mt-6 max-w-5xl ${compact ? 'text-sous-titre' : 'text-titre'}`}>
-        {titre}
+      <h1 data-titre-mots className={`mt-6 max-w-5xl ${compact ? 'text-sous-titre' : 'text-titre'}`}>
+        <MotsReveles texte={titre} />
       </h1>
       {children && (
         <div data-reveal className="mt-6 max-w-xl text-[16px] text-brun/80">
