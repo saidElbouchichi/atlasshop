@@ -49,7 +49,7 @@ export const listerProduits = asyncHandler(async (req, res) => {
 
   const [produits, total] = await Promise.all([
     Product.find(filtre)
-      .sort(TRIS[sort] ?? TRIS.vedettes)
+      .sort(Object.hasOwn(TRIS, sort) ? TRIS[sort] : TRIS.vedettes)
       .skip((page - 1) * limit)
       .limit(limit),
     Product.countDocuments(filtre),

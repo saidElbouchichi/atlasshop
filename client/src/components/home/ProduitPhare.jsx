@@ -1,14 +1,17 @@
 import { useRef } from 'react'
+import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
-import { variantesPhares } from '../../data/products'
 import { useAjoutPanier } from '../../hooks/useAjoutPanier'
 import { useRevelations } from '../../hooks/useRevelations'
+import { selectProduits } from '../../store/slices/productsSlice'
 import { formaterPrix } from '../../utils/format'
 import { lienWhatsApp, messageConseilProduit } from '../../utils/whatsapp'
 import CarrouselImages from '../product/CarrouselImages'
 import { IconeWhatsApp } from '../ui/Icones'
 import { MotsReveles } from '../ui/Mouvement'
 import Photo from '../ui/Photo'
+
+const SLUGS_VARIANTES = ['tapis-beni-ouarain-s', 'tapis-beni-ouarain-l']
 
 const IMAGE_SALON = {
   id: '1616047006789-b7af5afb8c20',
@@ -20,7 +23,7 @@ function CarteVariante({ produit }) {
   const lienFiche = `/produit/${produit.slug}`
 
   return (
-    <article data-reveal className="group flex flex-col bg-beige p-6 xl:p-10">
+    <article className="group flex flex-col bg-beige p-6 xl:p-10">
       <div className="flex aspect-square flex-col overflow-hidden sm:aspect-[4/3]">
         <CarrouselImages
           images={produit.images}
@@ -65,6 +68,8 @@ function CarteVariante({ produit }) {
 // Produit phare en affichage « split », puis le bloc « Choisissez votre pièce »
 export default function ProduitPhare() {
   const refSection = useRef(null)
+  const produits = useSelector(selectProduits)
+  const variantesPhares = SLUGS_VARIANTES.map((slug) => produits.find((produit) => produit.slug === slug)).filter(Boolean)
   useRevelations(refSection)
 
   return (

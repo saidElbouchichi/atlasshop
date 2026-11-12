@@ -3,20 +3,24 @@ import { Link } from 'react-router-dom'
 import { useFormulaire } from '../../hooks/useFormulaire'
 import { useToast } from '../../hooks/useToast'
 import { selectUtilisateur } from '../../store/slices/authSlice'
-import { ajouterAvis } from '../../store/slices/productsSlice'
+import { messageErreur } from '../../services/api'
+import { envoyerAvis } from '../../store/slices/productsSlice'
 import { validerAvis } from '../../utils/validation'
 import { Champ, Note } from '../ui/Formulaire'
 
 const NOTES = [5, 4, 3, 2, 1]
 
-function FormulaireAvis({ produit, utilisateur }) {
+function FormulaireAvis({ produit }) {
   const dispatch = useDispatch()
   const toast = useToast()
 
-  const publier = ({ rating, comment }) => {
-    const avis = { user: utilisateur._id, name: utilisateur.name, rating: Number(rating), comment: comment.trim() }
-    dispatch(ajouterAvis({ productId: produit._id, avis }))
-    toast('Merci, votre avis est publié.')
+  const publier = async ({ rating, comment }) => {
+    try {
+      await dispatch(envoyerAvis({ productId: produit._id, rating: Number(rating), comment: comment.trim() })).unwrap()
+      toast('Merci, votre avis est publié.')
+    } catch (erreur) {
+      toast(messageErreur(erreur), 'erreur')
+    }
   }
 
   const { champ, soumettre } = useFormulaire({ rating: '5', comment: '' }, validerAvis, publier)
@@ -50,7 +54,7 @@ export default function AvisProduit({ produit }) {
           <li className="border-t border-sable py-6 text-brun/80">Aucun avis pour le moment : soyez le premier.</li>
         )}
         {produit.reviews.map((avis) => (
-          <li key={avis.user} className="border-t border-sable py-6 last:border-b">
+          <li key={avis._id ?? avis.user} className="border-t border-sable py-6 last:border-b">
             <div className="flex items-center justify-between gap-4">
               <p className="label">{avis.name}</p>
               <Note valeur={avis.rating} />
@@ -72,7 +76,7 @@ export default function AvisProduit({ produit }) {
             </>
           )}
           {utilisateur && dejaDonne && <p className="text-brun/80">Vous avez déjà donné votre avis sur cette pièce. Merci !</p>}
-          {utilisateur && !dejaDonne && <FormulaireAvis produit={produit} utilisateur={utilisateur} />}
+          {utilisateur && !dejaDonne && <FormulaireAvis produit={produit} />}
         </div>
       </div>
     </div>

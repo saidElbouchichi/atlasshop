@@ -1,51 +1,77 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { utilisateursDemo } from '../../data/mock'
-import { lireStockage } from '../../utils/stockage'
+import { creerAppel, ecrireJeton, lireJeton, requete } from '../../services/api'
 
-export const CLE_STOCKAGE_UTILISATEUR = 'atlasshop_utilisateur'
+// Authentification JWT : register, login, logout, me — et gestion des utilisateurs par l'admin.
 
-const ROLES = ['user', 'admin']
+const ouvrirSession = (url) => async (identifiants) => {
+  const { data } = await requete({ url, method: 'post', data: identifiants })
+  ecrireJeton(data.token)
+  return data.user
+}
 
-const estUtilisateurValide = (utilisateur) =>
-  utilisateur &&
-  typeof utilisateur._id === 'string' &&
-  typeof utilisateur.email === 'string' &&
-  ROLES.includes(utilisateur.role)
+export const connexion = creerAppel('auth/connexion', ouvrirSession('/auth/login'))
+export const inscription = creerAppel('auth/inscription', ouvrirSession('/auth/register'))
 
-// Phase 1 : authentification simulée (aucun mot de passe n'est stocké ni vérifié côté client).
-// Phase 2 : register / login / logout / me avec JWT.
+// Au démarrage : si un jeton est mémorisé, on recharge le compte correspondant
+export const chargerSession = creerAppel('auth/chargerSession', async () => {
+  if (!lireJeton()) return null
+  const { data } = await requete({ url: '/auth/me' })
+  return data.user
+})
+
+export const deconnexion = creerAppel('auth/deconnexion', async () => {
+  ecrireJeton('')
+  // Le JWT est sans état : l'appel au serveur est une simple politesse, son échec n'empêche rien
+  await requete({ url: '/auth/logout', method: 'post' }).catch(() => null)
+  return null
+})
+
+export const chargerUtilisateurs = creerAppel('auth/chargerUtilisateurs', async () => (await requete({ url: '/users' })).data)
+
+export const modifierRole = creerAppel('auth/modifierRole', async ({ id, role }) =>
+  (await requete({ url: `/users/${id}/role`, method: 'put', data: { role } })).data,
+)
+
 const authSlice = createSlice({
   name: 'auth',
   initialState: {
-    user: lireStockage(CLE_STOCKAGE_UTILISATEUR, estUtilisateurValide, null),
-    users: utilisateursDemo,
+    user: null,
+    // « verification » tant qu'on ne sait pas si le jeton mémorisé est encore valable
+    statut: lireJeton() ? 'verification' : 'pret',
+    users: [],
   },
-  reducers: {
-    connecter(state, action) {
+  reducers: {},
+  extraReducers: (builder) => {
+    const connecter = (state, action) => {
       state.user = action.payload
-    },
-    inscrire(state, action) {
-      state.users.push(action.payload)
-      state.user = action.payload
-    },
-    deconnecter(state) {
-      state.user = null
-    },
-    changerRole(state, action) {
-      const { id, role } = action.payload
-      const utilisateur = state.users.find((element) => element._id === id)
-      if (utilisateur && ROLES.includes(role)) utilisateur.role = role
-    },
+      state.statut = 'pret'
+    }
+    builder
+      .addCase(connexion.fulfilled, connecter)
+      .addCase(inscription.fulfilled, connecter)
+      .addCase(chargerSession.fulfilled, connecter)
+      .addCase(chargerSession.rejected, (state, action) => {
+        // Jeton expiré ou compte supprimé : on repart déconnecté (une simple panne réseau garde le jeton)
+        if (action.payload?.status === 401) ecrireJeton('')
+        state.user = null
+        state.statut = 'pret'
+      })
+      .addCase(deconnexion.fulfilled, (state) => {
+        state.user = null
+        state.users = []
+      })
+      .addCase(chargerUtilisateurs.fulfilled, (state, action) => {
+        state.users = action.payload
+      })
+      .addCase(modifierRole.fulfilled, (state, action) => {
+        state.users = state.users.map((utilisateur) => (utilisateur._id === action.payload._id ? action.payload : utilisateur))
+      })
   },
 })
 
-export const { connecter, inscrire, deconnecter, changerRole } = authSlice.actions
-
 export const selectUtilisateur = (state) => state.auth.user
+export const selectStatutSession = (state) => state.auth.statut
 export const selectUtilisateurs = (state) => state.auth.users
 export const selectEstAdmin = (state) => state.auth.user?.role === 'admin'
-
-export const trouverParEmail = (utilisateurs, email) =>
-  utilisateurs.find((utilisateur) => utilisateur.email === String(email ?? '').trim().toLowerCase())
 
 export default authSlice.reducer

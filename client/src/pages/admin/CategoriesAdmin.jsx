@@ -1,10 +1,9 @@
 import { useState } from 'react'
-import { nanoid } from '@reduxjs/toolkit'
 import { useDispatch, useSelector } from 'react-redux'
 import { useToast } from '../../hooks/useToast'
-import { ajouterCategorie, modifierCategorie, selectCategories, supprimerCategorie } from '../../store/slices/categoriesSlice'
+import { messageErreur } from '../../services/api'
+import { creerCategorie, effacerCategorie, majCategorie, selectCategories } from '../../store/slices/categoriesSlice'
 import { selectProduits } from '../../store/slices/productsSlice'
-import { creerSlug } from '../../utils/catalogue'
 
 const LONGUEUR_MIN_NOM = 2
 
@@ -19,31 +18,38 @@ export default function CategoriesAdmin() {
 
   const nombreProduits = (slug) => produits.filter((produit) => produit.category === slug).length
 
-  const ajouter = (evenement) => {
-    evenement.preventDefault()
-    const propre = nom.trim()
-    const slug = creerSlug(propre)
-    if (propre.length < LONGUEUR_MIN_NOM || !slug) return toast('Indiquez un nom de catégorie.', 'erreur')
-    if (categories.some((categorie) => categorie.slug === slug)) return toast('Cette catégorie existe déjà.', 'erreur')
-    dispatch(ajouterCategorie({ _id: `c-${nanoid(6)}`, name: propre, slug, image: null }))
-    setNom('')
-    return toast('Catégorie créée.')
+  // Exécute une action de l'API puis confirme, ou affiche le refus du serveur
+  const executer = async (action, message, type) => {
+    try {
+      await dispatch(action).unwrap()
+      toast(message, type)
+      return true
+    } catch (erreur) {
+      toast(messageErreur(erreur), 'erreur')
+      return false
+    }
   }
 
-  const renommer = (evenement) => {
+  const ajouter = async (evenement) => {
+    evenement.preventDefault()
+    const propre = nom.trim()
+    if (propre.length < LONGUEUR_MIN_NOM) return toast('Indiquez un nom de catégorie.', 'erreur')
+    if (await executer(creerCategorie({ name: propre }), 'Catégorie créée.')) setNom('')
+    return null
+  }
+
+  const renommer = async (evenement) => {
     evenement.preventDefault()
     const propre = edition.name.trim()
     if (propre.length < LONGUEUR_MIN_NOM) return toast('Indiquez un nom de catégorie.', 'erreur')
     // Le slug ne change pas : les produits y sont rattachés
-    dispatch(modifierCategorie({ _id: edition._id, name: propre }))
-    setEdition(null)
-    return toast('Catégorie renommée.')
+    if (await executer(majCategorie({ _id: edition._id, name: propre }), 'Catégorie renommée.')) setEdition(null)
+    return null
   }
 
   const supprimer = (categorie) => {
     if (nombreProduits(categorie.slug) > 0) return toast('Déplacez d’abord les produits de cette catégorie.', 'erreur')
-    dispatch(supprimerCategorie(categorie._id))
-    return toast(`« ${categorie.name} » a été supprimée.`, 'info')
+    return executer(effacerCategorie(categorie._id), `« ${categorie.name} » a été supprimée.`, 'info')
   }
 
   return (

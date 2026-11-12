@@ -1,5 +1,4 @@
-import { useEffect, useRef, useState } from 'react'
-import { nanoid } from '@reduxjs/toolkit'
+import { useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, useNavigate } from 'react-router-dom'
 import { ListeArticles, Totaux } from '../components/cart/Recapitulatif'
@@ -8,49 +7,64 @@ import { IconeCadenas } from '../components/ui/Icones'
 import { EnTetePage } from '../components/ui/Page'
 import { useFormulaire } from '../hooks/useFormulaire'
 import { useToast } from '../hooks/useToast'
+import { messageErreur } from '../services/api'
 import { selectUtilisateur } from '../store/slices/authSlice'
 import { selectArticles, viderPanier } from '../store/slices/cartSlice'
-import { ajouterCommande } from '../store/slices/ordersSlice'
-import { calculerTotaux, creerCommande } from '../utils/commande'
+import { passerCommande } from '../store/slices/ordersSlice'
+import { calculerTotaux } from '../utils/commande'
 import { validerAdresse } from '../utils/validation'
 
-const DELAI_PAIEMENT_SIMULE_MS = 900
+const PREFIXE_ADRESSE = 'shippingAddress.'
 
-// Checkout : adresse de livraison, récapitulatif, puis paiement.
-// Phase 1 : le paiement est simulé. Phase 2 : Stripe Checkout Session (mode test) + webhook.
+// L'API nomme les champs « shippingAddress.phone » : on retire le préfixe pour le formulaire
+const erreursAdresse = (champs) =>
+  Object.fromEntries(
+    Object.entries(champs)
+      .filter(([cle]) => cle.startsWith(PREFIXE_ADRESSE))
+      .map(([cle, message]) => [cle.slice(PREFIXE_ADRESSE.length), message]),
+  )
+
+// Checkout : adresse de livraison, récapitulatif, puis paiement Stripe Checkout (mode test).
+// La commande est créée par l'API, qui recalcule les prix ; le webhook Stripe la marque payée.
 export default function Checkout() {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const toast = useToast()
   const utilisateur = useSelector(selectUtilisateur)
   const articles = useSelector(selectArticles)
-  const [commandeEnvoyee, setCommandeEnvoyee] = useState(null)
+  // Référence (et non état) : elle doit être à jour dès le rendu provoqué par le vidage du panier
+  const commandeEnvoyee = useRef(false)
   const [paiementEnCours, setPaiementEnCours] = useState(false)
-  const minuteriePaiement = useRef(null)
 
-  // Si l'on quitte la page pendant le paiement simulé, il est annulé
-  useEffect(() => () => window.clearTimeout(minuteriePaiement.current), [])
-
-  const payer = (adresse) => {
+  const payer = async (adresse) => {
     setPaiementEnCours(true)
-    minuteriePaiement.current = window.setTimeout(() => {
-      const commande = creerCommande({ id: `cmd-${nanoid(8)}`, articles, adresse, utilisateur })
-      dispatch(ajouterCommande(commande))
-      setCommandeEnvoyee(commande._id)
+    try {
+      const items = articles.map((article) => ({ product: article.product, qty: article.qty }))
+      const { commande, url, simule } = await dispatch(passerCommande({ items, shippingAddress: adresse })).unwrap()
+      commandeEnvoyee.current = true
+      if (!simule) {
+        // Redirection vers la page de paiement Stripe ; le panier est vidé au retour
+        window.location.assign(url)
+        return
+      }
       dispatch(viderPanier())
-      toast('Paiement accepté. Merci pour votre commande !')
+      toast('Paiement simulé (aucune clé Stripe configurée). Merci pour votre commande !')
       navigate(`/confirmation/${commande._id}`, { replace: true })
-    }, DELAI_PAIEMENT_SIMULE_MS)
+    } catch (erreur) {
+      setErreurs(erreur.champs ? erreursAdresse(erreur.champs) : {})
+      toast(messageErreur(erreur), 'erreur')
+      setPaiementEnCours(false)
+    }
   }
 
-  const { champ, soumettre } = useFormulaire(
+  const { champ, soumettre, setErreurs } = useFormulaire(
     { fullName: utilisateur?.name ?? '', phone: '', address: '', city: '', postalCode: '' },
     validerAdresse,
     payer,
   )
 
   // Panier vide : rien à payer (sauf juste après la validation, le temps de la redirection)
-  if (articles.length === 0 && !commandeEnvoyee) return <Navigate to="/panier" replace />
+  if (articles.length === 0 && !commandeEnvoyee.current) return <Navigate to="/panier" replace />
 
   return (
     <>
@@ -79,7 +93,7 @@ export default function Checkout() {
             {paiementEnCours ? 'Paiement en cours…' : 'Payer avec Stripe'}
           </button>
           <p className="mt-4 text-center text-[13px] text-cuivre">
-            Mode test : aucun débit réel. Le paiement est simulé en Phase 1.
+            Paiement sécurisé par Stripe, en mode test : aucun débit réel.
           </p>
         </aside>
       </form>

@@ -1,9 +1,13 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { useToast } from '../../hooks/useToast'
-import { changerStatut, selectCommandes } from '../../store/slices/ordersSlice'
+import { messageErreur } from '../../services/api'
+import { majStatut, selectCommandes } from '../../store/slices/ordersSlice'
 import { STATUTS_COMMANDE, formaterDate } from '../../utils/commande'
 import { formaterPrix } from '../../utils/format'
+
+// Référence courte et lisible d'une commande (fin de son identifiant)
+export const reference = (commande) => `#${commande._id.slice(-6).toUpperCase()}`
 
 // Liste des commandes avec changement de statut
 export default function CommandesAdmin() {
@@ -11,9 +15,13 @@ export default function CommandesAdmin() {
   const toast = useToast()
   const commandes = useSelector(selectCommandes)
 
-  const modifierStatut = (commande, status) => {
-    dispatch(changerStatut({ id: commande._id, status }))
-    toast(`Commande ${commande._id} : ${status}.`)
+  const modifierStatut = async (commande, status) => {
+    try {
+      await dispatch(majStatut({ id: commande._id, status })).unwrap()
+      toast(`Commande ${reference(commande)} : ${status}.`)
+    } catch (erreur) {
+      toast(messageErreur(erreur), 'erreur')
+    }
   }
 
   return (
@@ -36,10 +44,10 @@ export default function CommandesAdmin() {
             {commandes.map((commande) => (
               <tr key={commande._id}>
                 <td>
-                  <Link to={`/confirmation/${commande._id}`} className="font-medium underline-offset-4 hover:text-ambre hover:underline">{commande._id}</Link>
+                  <Link to={`/confirmation/${commande._id}`} className="font-medium underline-offset-4 hover:text-ambre hover:underline">{reference(commande)}</Link>
                 </td>
                 <td>
-                  {commande.user.name}
+                  {commande.user?.name ?? 'Compte supprimé'}
                   <span className="block text-[12px] text-cuivre">{commande.shippingAddress.city}</span>
                 </td>
                 <td className="whitespace-nowrap">{formaterDate(commande.createdAt)}</td>
@@ -48,7 +56,7 @@ export default function CommandesAdmin() {
                 <td>{commande.isPaid ? 'Oui' : 'Non'}</td>
                 <td>
                   <select
-                    aria-label={`Statut de la commande ${commande._id}`}
+                    aria-label={`Statut de la commande ${reference(commande)}`}
                     value={commande.status}
                     onChange={(evenement) => modifierStatut(commande, evenement.target.value)}
                     className="champ-compact first-letter:uppercase"

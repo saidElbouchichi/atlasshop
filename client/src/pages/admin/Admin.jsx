@@ -1,5 +1,10 @@
+import { useEffect } from 'react'
+import { useDispatch } from 'react-redux'
 import { NavLink, Route, Routes } from 'react-router-dom'
 import { EnTetePage } from '../../components/ui/Page'
+import { chargerUtilisateurs } from '../../store/slices/authSlice'
+import { chargerCommandes } from '../../store/slices/ordersSlice'
+import { chargerProduits } from '../../store/slices/productsSlice'
 import PageIntrouvable from '../PageIntrouvable'
 import CategoriesAdmin from './CategoriesAdmin'
 import CommandesAdmin from './CommandesAdmin'
@@ -17,6 +22,15 @@ const ONGLETS = [
 
 // Administration : design sobre dans le même thème, navigation par onglets
 export default function Admin() {
+  const dispatch = useDispatch()
+
+  // À l'ouverture de l'admin : données fraîches (commandes, utilisateurs, stocks)
+  useEffect(() => {
+    dispatch(chargerCommandes())
+    dispatch(chargerUtilisateurs())
+    dispatch(chargerProduits())
+  }, [dispatch])
+
   return (
     <>
       <EnTetePage label="Administration" titre="Gestion de la boutique" compact />

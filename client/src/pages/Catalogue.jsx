@@ -6,28 +6,48 @@ import GrilleProduits from '../components/product/GrilleProduits'
 import { Chargeur } from '../components/ui/Etoile'
 import { EnTetePage, SqueletteCarte } from '../components/ui/Page'
 import { selectCategories } from '../store/slices/categoriesSlice'
-import { selectProduits } from '../store/slices/productsSlice'
-import { TRIS, chercherProduits, lireCriteres } from '../utils/catalogue'
+import { requete } from '../services/api'
+import { PRODUITS_PAR_PAGE, TRIS, lireCriteres } from '../utils/catalogue'
 import { deuxChiffres } from '../utils/format'
 import { revenirEnHaut } from '../utils/defilement'
 
 const DELAI_RECHERCHE_MS = 350
-const DUREE_SQUELETTE_MS = 450
+const RESULTAT_VIDE = { elements: [], total: 0, page: 1, totalPages: 1 }
 
 const classePastille = (active) =>
   `label h-10 rounded border px-4 transition-colors duration-300 ${
     active ? 'border-brun bg-brun text-creme' : 'border-sable hover:border-brun'
   }`
 
-// Simule le temps de réponse de l'API pour montrer les skeletons (remplacé par le vrai statut en Phase 2)
-function useChargementSimule(cle) {
-  const [charge, setCharge] = useState(false)
+// Interroge GET /api/products avec les critères de l'URL.
+// etat : 'chargement' (skeletons) | 'pret' | 'erreur'
+function useRechercheProduits(criteres, tentative) {
+  const [resultat, setResultat] = useState(RESULTAT_VIDE)
+  const [etat, setEtat] = useState('chargement')
+
   useEffect(() => {
-    setCharge(false)
-    const minuterie = window.setTimeout(() => setCharge(true), DUREE_SQUELETTE_MS)
-    return () => window.clearTimeout(minuterie)
-  }, [cle])
-  return charge
+    let annule = false
+    setEtat('chargement')
+    const { q, category, minPrice, maxPrice, sort, page } = criteres
+    const params = { q, category, minPrice, maxPrice, sort, page, limit: PRODUITS_PAR_PAGE }
+    // Les critères vides ne sont pas envoyés
+    const utiles = Object.fromEntries(Object.entries(params).filter(([, valeur]) => valeur !== '' && valeur !== null))
+
+    requete({ url: '/products', params: utiles })
+      .then(({ data, meta }) => {
+        if (annule) return
+        setResultat({ elements: data, total: meta.total, page: meta.page, totalPages: meta.pages })
+        setEtat('pret')
+      })
+      .catch(() => !annule && setEtat('erreur'))
+
+    // Une réponse arrivée après un nouveau changement de critères est ignorée
+    return () => {
+      annule = true
+    }
+  }, [criteres, tentative])
+
+  return { resultat, etat }
 }
 
 function Pagination({ page, totalPages, surChangement }) {
@@ -57,17 +77,17 @@ function Pagination({ page, totalPages, surChangement }) {
   )
 }
 
-// Catalogue : recherche, filtres par catégorie et par prix, tri et pagination.
-// Tous les critères vivent dans l'URL, comme les futurs paramètres de l'API.
+// Catalogue : recherche, filtres par catégorie et par prix, tri et pagination, calculés par l'API.
+// Tous les critères vivent dans l'URL (?q, ?category, ?minPrice, ?maxPrice, ?sort, ?page).
 export default function Catalogue() {
   const [parametres, setParametres] = useSearchParams()
-  const produits = useSelector(selectProduits)
   const categories = useSelector(selectCategories)
   const criteres = useMemo(() => lireCriteres(parametres), [parametres])
-  const resultat = useMemo(() => chercherProduits(produits, criteres), [produits, criteres])
+  const [tentative, setTentative] = useState(0)
+  const { resultat, etat } = useRechercheProduits(criteres, tentative)
   const [recherche, setRecherche] = useState(criteres.q)
   const [filtresOuverts, setFiltresOuverts] = useState(false)
-  const charge = useChargementSimule(parametres.toString())
+  const charge = etat !== 'chargement'
 
   const modifier = (changements, { garderPage = false } = {}) => {
     setParametres(
@@ -218,8 +238,17 @@ export default function Catalogue() {
               </span>
             </div>
           )}
-          {charge && resultat.total > 0 && <GrilleProduits produits={resultat.elements} />}
-          {charge && resultat.total === 0 && (
+          {etat === 'erreur' && (
+            <div role="alert" className="border border-sable bg-beige px-6 py-20 text-center">
+              <p className="text-sous-titre">Le catalogue est momentanément indisponible.</p>
+              <p className="mt-4 text-brun/80">Vérifiez votre connexion, puis réessayez.</p>
+              <button type="button" onClick={() => setTentative((numero) => numero + 1)} className="btn btn-plein mt-8">
+                Réessayer
+              </button>
+            </div>
+          )}
+          {etat === 'pret' && resultat.total > 0 && <GrilleProduits produits={resultat.elements} />}
+          {etat === 'pret' && resultat.total === 0 && (
             <div className="border border-sable bg-beige px-6 py-20 text-center">
               <p className="text-sous-titre">Aucune pièce ne correspond.</p>
               <p className="mt-4 text-brun/80">Essayez d'élargir votre recherche ou de retirer un filtre.</p>
@@ -230,7 +259,7 @@ export default function Catalogue() {
           )}
         </div>
 
-        {charge && <Pagination page={resultat.page} totalPages={resultat.totalPages} surChangement={changerPage} />}
+        {etat === 'pret' && <Pagination page={resultat.page} totalPages={resultat.totalPages} surChangement={changerPage} />}
       </section>
     </>
   )

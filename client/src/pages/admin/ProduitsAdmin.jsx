@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { nanoid } from '@reduxjs/toolkit'
 import { useDispatch, useSelector } from 'react-redux'
 import Photo from '../../components/ui/Photo'
 import { useToast } from '../../hooks/useToast'
+import { messageErreur } from '../../services/api'
 import { selectNomCategorie } from '../../store/slices/categoriesSlice'
-import { ajouterProduit, modifierProduit, selectProduits, supprimerProduit } from '../../store/slices/productsSlice'
-import { creerSlug } from '../../utils/catalogue'
+import { creerProduit, effacerProduit, majProduit, selectProduits } from '../../store/slices/productsSlice'
 import { formaterPrix } from '../../utils/format'
 import FormulaireProduit from './FormulaireProduit'
 
@@ -44,7 +43,7 @@ function LigneProduit({ produit, surModification, surSuppression }) {
   )
 }
 
-// CRUD produits (local en Phase 1, API en Phase 2)
+// CRUD produits via l'API (routes réservées à l'admin)
 export default function ProduitsAdmin() {
   const dispatch = useDispatch()
   const toast = useToast()
@@ -53,22 +52,24 @@ export default function ProduitsAdmin() {
   const [edition, setEdition] = useState(null)
   const produitEdite = produits.find((produit) => produit._id === edition)
 
-  const enregistrer = (donnees) => {
-    if (produitEdite) {
-      dispatch(modifierProduit({ _id: produitEdite._id, ...donnees }))
-      toast('Produit mis à jour.')
-    } else {
-      const slugDeBase = creerSlug(donnees.name)
-      const slugPris = produits.some((produit) => produit.slug === slugDeBase)
-      dispatch(ajouterProduit({ _id: `p-${nanoid(6)}`, slug: slugPris ? `${slugDeBase}-${nanoid(4).toLowerCase()}` : slugDeBase, ...donnees }))
-      toast('Produit créé.')
+  const enregistrer = async (donnees) => {
+    try {
+      const action = produitEdite ? majProduit({ _id: produitEdite._id, ...donnees }) : creerProduit(donnees)
+      await dispatch(action).unwrap()
+      toast(produitEdite ? 'Produit mis à jour.' : 'Produit créé.')
+      setEdition(null)
+    } catch (erreur) {
+      toast(messageErreur(erreur), 'erreur')
     }
-    setEdition(null)
   }
 
-  const supprimer = (produit) => {
-    dispatch(supprimerProduit(produit._id))
-    toast(`« ${produit.name} » a été supprimé.`, 'info')
+  const supprimer = async (produit) => {
+    try {
+      await dispatch(effacerProduit(produit._id)).unwrap()
+      toast(`« ${produit.name} » a été supprimé.`, 'info')
+    } catch (erreur) {
+      toast(messageErreur(erreur), 'erreur')
+    }
   }
 
   return (

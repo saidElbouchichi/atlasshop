@@ -1,42 +1,50 @@
 import { createSlice } from '@reduxjs/toolkit'
-import { commandesDemo } from '../../data/mock'
-import { STATUTS_COMMANDE } from '../../utils/commande'
-import { lireStockage } from '../../utils/stockage'
+import { creerAppel, requete } from '../../services/api'
 
-export const CLE_STOCKAGE_COMMANDES = 'atlasshop_commandes'
+// Commandes : API /api/orders et paiement /api/payments.
 
-const estCommandeValide = (commande) =>
-  commande &&
-  typeof commande._id === 'string' &&
-  Array.isArray(commande.items) &&
-  Number.isFinite(commande.totalPrice) &&
-  STATUTS_COMMANDE.includes(commande.status)
+export const chargerMesCommandes = creerAppel('orders/mesCommandes', async () => (await requete({ url: '/orders/mine' })).data)
+export const chargerCommandes = creerAppel('orders/toutes', async () => (await requete({ url: '/orders' })).data)
+export const chargerCommande = creerAppel('orders/une', async (id) => (await requete({ url: `/orders/${id}` })).data)
 
-const sontCommandesValides = (commandes) => Array.isArray(commandes) && commandes.every(estCommandeValide)
+// Crée la commande puis ouvre le paiement. Retourne { commande, url, simule } :
+// `url` est la page Stripe Checkout, ou la confirmation si le paiement est simulé (développement sans clé Stripe).
+export const passerCommande = creerAppel('orders/passer', async ({ items, shippingAddress }) => {
+  const { data: commande } = await requete({ url: '/orders', method: 'post', data: { items, shippingAddress } })
+  const { data: paiement } = await requete({ url: '/payments/create-checkout-session', method: 'post', data: { orderId: commande._id } })
+  return { commande, ...paiement }
+})
 
-// Phase 1 : commandes de démo + commandes passées dans ce navigateur.
-// Phase 2 : API /api/orders.
+export const majStatut = creerAppel('orders/statut', async ({ id, status }) =>
+  (await requete({ url: `/orders/${id}/status`, method: 'put', data: { status } })).data,
+)
+
+// Ajoute la commande ou remplace sa version précédente
+const enregistrer = (state, commande) => {
+  const position = state.items.findIndex((element) => element._id === commande._id)
+  if (position === -1) state.items.unshift(commande)
+  else state.items[position] = commande
+}
+
 const ordersSlice = createSlice({
   name: 'orders',
-  initialState: { items: lireStockage(CLE_STOCKAGE_COMMANDES, sontCommandesValides, commandesDemo) },
-  reducers: {
-    ajouterCommande(state, action) {
-      state.items.unshift(action.payload)
-    },
-    changerStatut(state, action) {
-      const { id, status } = action.payload
-      const commande = state.items.find((element) => element._id === id)
-      if (!commande || !STATUTS_COMMANDE.includes(status)) return
-      commande.status = status
-      if (status !== 'en attente' && status !== 'annulée' && !commande.isPaid) {
-        commande.isPaid = true
-        commande.paidAt = new Date().toISOString()
-      }
-    },
+  initialState: { items: [] },
+  reducers: {},
+  extraReducers: (builder) => {
+    const remplacerTout = (state, action) => {
+      state.items = action.payload
+    }
+    builder
+      .addCase(chargerMesCommandes.fulfilled, remplacerTout)
+      .addCase(chargerCommandes.fulfilled, remplacerTout)
+      .addCase(chargerCommande.fulfilled, (state, action) => enregistrer(state, action.payload))
+      .addCase(majStatut.fulfilled, (state, action) => enregistrer(state, action.payload))
+      .addCase(passerCommande.fulfilled, (state, action) => enregistrer(state, action.payload.commande))
   },
 })
 
-export const { ajouterCommande, changerStatut } = ordersSlice.actions
+// Selon la route, `user` est un identifiant ou un objet { _id, name, email }
+export const idClient = (commande) => commande.user?._id ?? commande.user
 
 export const selectCommandes = (state) => state.orders.items
 export const selectCommandeParId = (id) => (state) =>

@@ -29,7 +29,8 @@ const regles = {
     query('q').optional().isString().isLength({ max: 80 }),
     query('category').optional().isString().isLength({ max: 60 }),
     query(['minPrice', 'maxPrice']).optional({ values: 'falsy' }).isFloat({ min: 0 }).withMessage('Prix invalide.'),
-    query('page').optional().isInt({ min: 1 }),
+    query('page').optional().isInt({ min: 1, max: 10000 }),
+    query('sort').optional().isString().isLength({ max: 20 }),
     query('limit').optional().isInt({ min: 1, max: 100 }),
   ],
   produit: (obligatoire) => {
@@ -37,8 +38,8 @@ const regles = {
     return [
       champ('name').isString().trim().isLength({ min: 2, max: 120 }).withMessage('Nom requis.'),
       champ('description').isString().trim().isLength({ min: 10 }).withMessage('Description trop courte.'),
-      champ('price').isFloat({ gt: 0 }).withMessage('Prix supérieur à 0.').toFloat(),
-      champ('stock').isInt({ min: 0 }).withMessage('Stock entier positif.').toInt(),
+      champ('price').isFloat({ gt: 0, max: 1000000 }).withMessage('Prix entre 1 et 1 000 000.').toFloat(),
+      champ('stock').isInt({ min: 0, max: 100000 }).withMessage('Stock entier entre 0 et 100 000.').toInt(),
       champ('category').isString().notEmpty().withMessage('Catégorie requise.'),
       body('subtitle').optional().isString().isLength({ max: 160 }),
       body('artisan').optional().isString().isLength({ max: 120 }),

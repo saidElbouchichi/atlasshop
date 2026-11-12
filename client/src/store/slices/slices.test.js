@@ -1,102 +1,127 @@
 import { describe, expect, test } from 'vitest'
-import authReducer, { changerRole, connecter, deconnecter, inscrire, trouverParEmail } from './authSlice'
-import categoriesReducer, { ajouterCategorie, modifierCategorie, selectNomCategorie, supprimerCategorie } from './categoriesSlice'
-import ordersReducer, { ajouterCommande, changerStatut } from './ordersSlice'
-import productsReducer, { ajouterAvis, ajouterProduit, modifierProduit, supprimerProduit } from './productsSlice'
+import authReducer, { chargerSession, chargerUtilisateurs, connexion, deconnexion, modifierRole } from './authSlice'
+import categoriesReducer, { chargerCategories, creerCategorie, effacerCategorie, majCategorie, selectNomCategorie } from './categoriesSlice'
+import ordersReducer, { chargerCommande, chargerMesCommandes, idClient, majStatut, passerCommande } from './ordersSlice'
+import productsReducer, {
+  chargerProduits,
+  creerProduit,
+  effacerProduit,
+  envoyerAvis,
+  majProduit,
+  selectProduitsVedettes,
+} from './productsSlice'
 import uiReducer, { afficherToast, ouvrirMenu, ouvrirPanier, retirerToast } from './uiSlice'
 
+// Les reducers sont testés avec les actions que les thunks émettent quand l'API répond.
 const initial = (reducer) => reducer(undefined, { type: '@@init' })
+const reussi = (thunk, charge) => thunk.fulfilled(charge, 'requete-test')
+const echoue = (thunk, charge) => thunk.rejected(null, 'requete-test', undefined, charge)
+
+const bol = { _id: 'a1', name: 'Bol', slug: 'bol', price: 180, isFeatured: false, rating: 0, numReviews: 0, reviews: [] }
+const tapis = { _id: 'a2', name: 'Tapis', slug: 'tapis', price: 3400, isFeatured: true, rating: 4.9, numReviews: 3, reviews: [] }
 
 describe('productsSlice', () => {
-  const avis = { user: 'u9', name: 'Test', rating: 1, comment: 'Bof, vraiment.' }
+  const charge = productsReducer(initial(productsReducer), reussi(chargerProduits, [bol, tapis]))
 
-  test('crée, modifie puis supprime un produit', () => {
-    const cree = productsReducer(initial(productsReducer), ajouterProduit({ _id: 'px', name: 'Théière', slug: 'theiere', price: 300 }))
-    const modifie = productsReducer(cree, modifierProduit({ _id: 'px', price: 350 }))
-    const supprime = productsReducer(modifie, supprimerProduit('px'))
+  test('suit le chargement du catalogue', () => {
+    const enCours = productsReducer(initial(productsReducer), chargerProduits.pending('requete-test'))
+    const enEchec = productsReducer(enCours, echoue(chargerProduits, { message: 'Serveur injoignable.' }))
 
-    expect(cree.items[0]).toMatchObject({ _id: 'px', rating: 0, numReviews: 0, reviews: [] })
-    expect(modifie.items[0].price).toBe(350)
-    expect(supprime.items.some((produit) => produit._id === 'px')).toBe(false)
+    expect(initial(productsReducer)).toMatchObject({ items: [], status: 'idle' })
+    expect(enCours.status).toBe('loading')
+    expect(charge).toMatchObject({ status: 'succeeded', items: [bol, tapis] })
+    expect(enEchec).toMatchObject({ status: 'failed', error: 'Serveur injoignable.' })
   })
 
-  test('un avis met à jour la note moyenne et le nombre d’avis', () => {
-    const depart = initial(productsReducer)
-    const avant = depart.items.find((produit) => produit._id === 'p5')
+  test('ajoute, remplace puis retire un produit', () => {
+    const theiere = { ...bol, _id: 'a3', name: 'Théière', slug: 'theiere' }
+    const ajoute = productsReducer(charge, reussi(creerProduit, theiere))
+    const modifie = productsReducer(ajoute, reussi(majProduit, { ...theiere, price: 450 }))
+    const retire = productsReducer(modifie, reussi(effacerProduit, 'a3'))
 
-    const apres = productsReducer(depart, ajouterAvis({ productId: 'p5', avis })).items.find((produit) => produit._id === 'p5')
-
-    expect(apres.numReviews).toBe(avant.numReviews + 1)
-    expect(apres.rating).toBeLessThan(avant.rating)
-    expect(apres.reviews[0]).toEqual(avis)
+    expect(ajoute.items[0]).toEqual(theiere)
+    expect(modifie.items[0].price).toBe(450)
+    expect(retire.items.map((produit) => produit._id)).toEqual(['a1', 'a2'])
   })
 
-  test('refuse un second avis du même utilisateur', () => {
-    const premier = productsReducer(initial(productsReducer), ajouterAvis({ productId: 'p5', avis }))
+  test('un avis remplace le produit par sa version renvoyée par l’API', () => {
+    const note = { ...bol, rating: 4, numReviews: 1, reviews: [{ _id: 'r1', user: 'u2', name: 'Salma', rating: 4, comment: 'Très joli.' }] }
 
-    const second = productsReducer(premier, ajouterAvis({ productId: 'p5', avis: { ...avis, rating: 5 } }))
+    const apres = productsReducer(charge, reussi(envoyerAvis, note))
 
-    expect(second).toBe(premier)
+    expect(apres.items[0]).toEqual(note)
+    expect(apres.items[1]).toBe(charge.items[1])
+  })
+
+  test('le sélecteur des vedettes est mémoïsé', () => {
+    const etat = { products: charge }
+
+    expect(selectProduitsVedettes(etat)).toEqual([tapis])
+    expect(selectProduitsVedettes(etat)).toBe(selectProduitsVedettes(etat))
   })
 })
 
 describe('categoriesSlice', () => {
-  test('ajoute, renomme et supprime une catégorie', () => {
-    const ajoutee = categoriesReducer(initial(categoriesReducer), ajouterCategorie({ _id: 'cx', name: 'Bijoux', slug: 'bijoux', image: null }))
-    const renommee = categoriesReducer(ajoutee, modifierCategorie({ _id: 'cx', name: 'Bijoux berbères' }))
-    const supprimee = categoriesReducer(renommee, supprimerCategorie('cx'))
+  test('charge, ajoute, renomme et supprime une catégorie', () => {
+    const chargees = categoriesReducer(initial(categoriesReducer), reussi(chargerCategories, [{ _id: 'c1', name: 'Cuir', slug: 'cuir' }]))
+    const ajoutee = categoriesReducer(chargees, reussi(creerCategorie, { _id: 'c2', name: 'Bijoux', slug: 'bijoux' }))
+    const renommee = categoriesReducer(ajoutee, reussi(majCategorie, { _id: 'c2', name: 'Bijoux berbères', slug: 'bijoux' }))
+    const supprimee = categoriesReducer(renommee, reussi(effacerCategorie, 'c2'))
 
     expect(selectNomCategorie('bijoux')({ categories: renommee })).toBe('Bijoux berbères')
     expect(selectNomCategorie('bijoux')({ categories: supprimee })).toBe('bijoux')
+    expect(supprimee.items).toHaveLength(1)
   })
 })
 
 describe('ordersSlice', () => {
-  const commande = { _id: 'cmd-x', items: [], totalPrice: 100, isPaid: false, paidAt: null, status: 'en attente', user: { _id: 'u2' } }
+  const commande = { _id: 'o1', user: 'u2', totalPrice: 405, isPaid: false, status: 'en attente', items: [] }
 
-  test('ajoute la nouvelle commande en tête de liste', () => {
-    expect(ordersReducer(initial(ordersReducer), ajouterCommande(commande)).items[0]._id).toBe('cmd-x')
+  test('enregistre la commande passée puis sa version payée, sans doublon', () => {
+    const passee = ordersReducer(initial(ordersReducer), reussi(passerCommande, { commande, url: '/confirmation/o1', simule: true }))
+    const payee = ordersReducer(passee, reussi(chargerCommande, { ...commande, isPaid: true, status: 'payée' }))
+
+    expect(passee.items).toEqual([commande])
+    expect(payee.items).toHaveLength(1)
+    expect(payee.items[0]).toMatchObject({ isPaid: true, status: 'payée' })
   })
 
-  test('passer une commande à « expédiée » la marque comme payée', () => {
-    const depart = ordersReducer(initial(ordersReducer), ajouterCommande(commande))
+  test('remplace la liste au chargement et met à jour un statut', () => {
+    const chargees = ordersReducer(initial(ordersReducer), reussi(chargerMesCommandes, [commande]))
+    const expediee = ordersReducer(chargees, reussi(majStatut, { ...commande, status: 'expédiée' }))
 
-    const expediee = ordersReducer(depart, changerStatut({ id: 'cmd-x', status: 'expédiée' })).items[0]
-
-    expect(expediee).toMatchObject({ status: 'expédiée', isPaid: true })
-    expect(expediee.paidAt).toEqual(expect.any(String))
+    expect(expediee.items[0].status).toBe('expédiée')
   })
 
-  test('ignore un statut inconnu et n’encaisse pas une commande annulée', () => {
-    const depart = ordersReducer(initial(ordersReducer), ajouterCommande(commande))
-
-    expect(ordersReducer(depart, changerStatut({ id: 'cmd-x', status: 'perdue' }))).toBe(depart)
-    expect(ordersReducer(depart, changerStatut({ id: 'cmd-x', status: 'annulée' })).items[0].isPaid).toBe(false)
+  test('retrouve le client, que « user » soit un identifiant ou un objet', () => {
+    expect(idClient({ user: 'u2' })).toBe('u2')
+    expect(idClient({ user: { _id: 'u2', name: 'Salma' } })).toBe('u2')
+    expect(idClient({ user: null })).toBeNull()
   })
 })
 
 describe('authSlice', () => {
-  const nouveau = { _id: 'u-x', name: 'Nora', email: 'nora@exemple.ma', role: 'user' }
+  const salma = { _id: 'u2', name: 'Salma Bennani', email: 'salma@atlasshop.ma', role: 'user' }
 
-  test('inscrit et connecte un nouvel utilisateur, puis le déconnecte', () => {
-    const inscrit = authReducer(initial(authReducer), inscrire(nouveau))
+  test('ouvre puis ferme la session', () => {
+    const connecte = authReducer(initial(authReducer), reussi(connexion, salma))
+    const deconnecte = authReducer(connecte, reussi(deconnexion, null))
 
-    expect(inscrit.user).toEqual(nouveau)
-    expect(trouverParEmail(inscrit.users, ' NORA@exemple.ma ')).toEqual(nouveau)
-    expect(authReducer(inscrit, deconnecter()).user).toBeNull()
+    expect(connecte).toMatchObject({ user: salma, statut: 'pret' })
+    expect(deconnecte.user).toBeNull()
   })
 
-  test('connecte un compte de démo et change un rôle valide uniquement', () => {
-    const depart = initial(authReducer)
-    const admin = trouverParEmail(depart.users, 'admin@atlasshop.ma')
+  test('une session invalide laisse l’utilisateur déconnecté et prêt', () => {
+    const etat = authReducer({ user: null, statut: 'verification', users: [] }, echoue(chargerSession, { status: 401 }))
 
-    const connecte = authReducer(depart, connecter(admin))
-    const promu = authReducer(connecte, changerRole({ id: 'u2', role: 'admin' }))
-    const invalide = authReducer(promu, changerRole({ id: 'u2', role: 'superadmin' }))
+    expect(etat).toMatchObject({ user: null, statut: 'pret' })
+  })
 
-    expect(connecte.user.role).toBe('admin')
-    expect(promu.users.find((utilisateur) => utilisateur._id === 'u2').role).toBe('admin')
-    expect(invalide).toBe(promu)
+  test('charge les utilisateurs et met à jour un rôle', () => {
+    const charges = authReducer(initial(authReducer), reussi(chargerUtilisateurs, [salma]))
+    const promue = authReducer(charges, reussi(modifierRole, { ...salma, role: 'admin' }))
+
+    expect(promue.users[0].role).toBe('admin')
   })
 })
 

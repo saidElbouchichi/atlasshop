@@ -3,14 +3,14 @@ import { useSelector } from 'react-redux'
 import { Link, useParams } from 'react-router-dom'
 import AvisProduit from '../components/product/AvisProduit'
 import GrilleProduits from '../components/product/GrilleProduits'
-import { SeparateurEtoile } from '../components/ui/Etoile'
+import { Chargeur, SeparateurEtoile } from '../components/ui/Etoile'
 import { Note, SelecteurQuantite } from '../components/ui/Formulaire'
 import { IconeWhatsApp } from '../components/ui/Icones'
 import Photo from '../components/ui/Photo'
 import { useAjoutPanier } from '../hooks/useAjoutPanier'
 import { useRevelations } from '../hooks/useRevelations'
 import { selectNomCategorie } from '../store/slices/categoriesSlice'
-import { selectProduitParSlug, selectProduits } from '../store/slices/productsSlice'
+import { selectProduitParSlug, selectProduits, selectStatutProduits } from '../store/slices/productsSlice'
 import { formaterPrix } from '../utils/format'
 import { cleImage } from '../utils/images'
 import { lienWhatsApp, messageConseilProduit } from '../utils/whatsapp'
@@ -114,9 +114,18 @@ export default function FicheProduit() {
   const { slug } = useParams()
   const produit = useSelector(selectProduitParSlug(slug))
   const produits = useSelector(selectProduits)
+  const statut = useSelector(selectStatutProduits)
   const refPage = useRef(null)
   useRevelations(refPage)
 
+  const enChargement = statut === 'idle' || statut === 'loading'
+  if (!produit && enChargement) {
+    return (
+      <div className="flex min-h-[100svh] items-center justify-center pt-entete">
+        <Chargeur texte="Chargement de la pièce…" />
+      </div>
+    )
+  }
   if (!produit) return <PageIntrouvable />
 
   const autres = produits.filter((autre) => autre._id !== produit._id)

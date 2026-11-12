@@ -1,7 +1,7 @@
 import rateLimit from 'express-rate-limit'
 import { validationResult } from 'express-validator'
 import multer from 'multer'
-import { estProduction, estTest } from '../config/env.js'
+import { estDeveloppement, estTest } from '../config/env.js'
 import { ErreurHttp } from '../utils/outils.js'
 
 // Termine une chaîne de validateurs express-validator : 400 avec le détail par champ
@@ -12,11 +12,17 @@ export function valider(req, res, next) {
   return res.status(400).json({ success: false, data: null, error: 'Données invalides.', champs })
 }
 
+const PROFONDEUR_MAX = 8
+
 // Refuse toute clé commençant par « $ » ou contenant « . » dans le corps (injection NoSQL)
 export function refuserOperateurs(req, _res, next) {
-  const contientOperateur = (valeur) => {
+  // Un corps trop imbriqué est refusé lui aussi (évite une récursion sans fin)
+  const contientOperateur = (valeur, profondeur = 0) => {
     if (!valeur || typeof valeur !== 'object') return false
-    return Object.entries(valeur).some(([cle, enfant]) => cle.startsWith('$') || cle.includes('.') || contientOperateur(enfant))
+    if (profondeur > PROFONDEUR_MAX) return true
+    return Object.entries(valeur).some(
+      ([cle, enfant]) => cle.startsWith('$') || cle.includes('.') || contientOperateur(enfant, profondeur + 1),
+    )
   }
   if (contientOperateur(req.body)) return next(new ErreurHttp(400, 'Données invalides.'))
   return next()
@@ -63,6 +69,6 @@ export function errorHandler(erreur, req, res, _next) {
     success: false,
     data: null,
     error: message,
-    ...(status >= 500 && !estProduction() ? { detail: erreur.message } : {}),
+    ...(status >= 500 && estDeveloppement() ? { detail: erreur.message } : {}),
   })
 }

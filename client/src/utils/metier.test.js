@@ -179,8 +179,15 @@ describe('stockage et images', () => {
     expect(ecrireStockage('cle', [1], stockage(null))).toBe(true)
   })
 
-  test('utilise l’URL directe d’une image importée, sinon le srcset Unsplash', () => {
-    expect(sourcesPhoto({ url: 'data:image/png;base64,AAA', alt: '' })).toEqual({ src: 'data:image/png;base64,AAA' })
+  test('adapte les sources selon l’origine de l’image (Unsplash, Cloudinary, autre)', () => {
+    const unsplash = sourcesPhoto({ url: 'https://images.unsplash.com/photo-abc', alt: '' })
+    const cloudinary = sourcesPhoto({ url: 'https://res.cloudinary.com/demo/image/upload/v1/atlasshop/bol.jpg', alt: '' })
+
     expect(sourcesPhoto({ id: 'abc', alt: '' }).srcSet).toContain('photo-abc')
+    expect(unsplash.src).toContain('photo-abc?auto=format')
+    expect(unsplash.srcSet).toContain('1600w')
+    expect(cloudinary.src).toContain('/image/upload/f_auto,q_auto,w_800/v1/atlasshop/bol.jpg')
+    expect(sourcesPhoto({ url: 'https://exemple.ma/photo.jpg', alt: '' })).toEqual({ src: 'https://exemple.ma/photo.jpg' })
+    expect(sourcesPhoto(null)).toEqual({ src: '' })
   })
 })

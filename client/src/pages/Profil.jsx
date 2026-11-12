@@ -1,9 +1,10 @@
+import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, useNavigate } from 'react-router-dom'
 import { EnTetePage } from '../components/ui/Page'
 import { useToast } from '../hooks/useToast'
-import { deconnecter, selectUtilisateur } from '../store/slices/authSlice'
-import { selectCommandes } from '../store/slices/ordersSlice'
+import { deconnexion, selectUtilisateur } from '../store/slices/authSlice'
+import { chargerMesCommandes, idClient, selectCommandes } from '../store/slices/ordersSlice'
 import { formaterDate } from '../utils/commande'
 import { formaterPrix } from '../utils/format'
 
@@ -18,10 +19,14 @@ export default function Profil() {
   const navigate = useNavigate()
   const toast = useToast()
   const utilisateur = useSelector(selectUtilisateur)
-  const commandes = useSelector(selectCommandes).filter((commande) => commande.user._id === utilisateur._id)
+  const commandes = useSelector(selectCommandes).filter((commande) => idClient(commande) === utilisateur._id)
+
+  useEffect(() => {
+    dispatch(chargerMesCommandes())
+  }, [dispatch])
 
   const seDeconnecter = () => {
-    dispatch(deconnecter())
+    dispatch(deconnexion())
     toast('Vous êtes déconnecté. À bientôt !', 'info')
     navigate('/', { replace: true })
   }
@@ -63,7 +68,7 @@ export default function Profil() {
               {commandes.map((commande) => (
                 <li key={commande._id} className="grid gap-3 border-b border-sable py-5 sm:grid-cols-[1fr_auto_auto] sm:items-center sm:gap-8">
                   <div>
-                    <p className="label">{commande._id}</p>
+                    <p className="label">#{commande._id.slice(-6).toUpperCase()}</p>
                     <p className="mt-1 text-[13px] text-cuivre">
                       {formaterDate(commande.createdAt)} · {commande.items.map((article) => `${article.qty} × ${article.name}`).join(', ')}
                     </p>

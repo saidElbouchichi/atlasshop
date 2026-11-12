@@ -1,7 +1,13 @@
+import bcrypt from 'bcryptjs'
+import { env } from '../config/env.js'
 import User, { ROLES } from '../models/User.js'
 import { ErreurHttp, asyncHandler, creerToken, envoyer } from '../utils/outils.js'
 
 const MESSAGE_IDENTIFIANTS = 'E-mail ou mot de passe incorrect.'
+
+// Hash factice comparé quand l'e-mail est inconnu : la réponse prend le même temps,
+// on ne peut donc pas deviner quels comptes existent en chronométrant la connexion
+const HASH_FACTICE = bcrypt.hashSync('compte-inexistant', env.bcryptRounds)
 
 const reponseSession = (utilisateur) => ({ user: utilisateur.toJSON(), token: creerToken(utilisateur) })
 
@@ -19,9 +25,10 @@ export const connecter = asyncHandler(async (req, res) => {
   const { email, password } = req.body
   const utilisateur = await User.findOne({ email }).select('+password')
   // Même message que l'e-mail existe ou non : on ne révèle pas quels comptes existent
-  if (!utilisateur || !(await utilisateur.verifierMotDePasse(password))) {
-    throw new ErreurHttp(401, MESSAGE_IDENTIFIANTS)
-  }
+  const motDePasseValide = utilisateur
+    ? await utilisateur.verifierMotDePasse(password)
+    : (await bcrypt.compare(password, HASH_FACTICE)) && false
+  if (!motDePasseValide) throw new ErreurHttp(401, MESSAGE_IDENTIFIANTS)
   envoyer(res, reponseSession(utilisateur))
 })
 

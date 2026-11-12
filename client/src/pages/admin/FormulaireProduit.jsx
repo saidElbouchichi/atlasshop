@@ -1,10 +1,10 @@
 import { useState } from 'react'
-import { nanoid } from '@reduxjs/toolkit'
 import { useSelector } from 'react-redux'
 import { Champ } from '../../components/ui/Formulaire'
 import Photo from '../../components/ui/Photo'
 import { useFormulaire } from '../../hooks/useFormulaire'
 import { useToast } from '../../hooks/useToast'
+import { messageErreur, requete } from '../../services/api'
 import { selectCategories } from '../../store/slices/categoriesSlice'
 import { cleImage } from '../../utils/images'
 import { validerProduit } from '../../utils/validation'
@@ -19,13 +19,14 @@ const SPECS_PAR_DEFAUT = [
   { label: 'Fait main', value: 'Oui' },
 ]
 
-const lireFichier = (fichier) =>
-  new Promise((resoudre, rejeter) => {
-    const lecteur = new FileReader()
-    lecteur.onload = () => resoudre(lecteur.result)
-    lecteur.onerror = () => rejeter(new Error(`Lecture impossible : ${fichier.name}`))
-    lecteur.readAsDataURL(fichier)
-  })
+const MOTIF_URL_HTTPS = /^https:\/\/\S+$/
+
+// POST /api/upload : les fichiers partent vers Cloudinary, l'API renvoie leurs URL
+async function televerser(fichiers) {
+  const formulaire = new FormData()
+  fichiers.forEach((fichier) => formulaire.append('images', fichier))
+  return (await requete({ url: '/upload', method: 'post', data: formulaire })).data
+}
 
 // Éditeur des caractéristiques (specs) : lignes label / valeur
 function EditeurSpecs({ specs, surChangement }) {
@@ -54,22 +55,37 @@ function EditeurSpecs({ specs, surChangement }) {
   )
 }
 
-// Images du produit. Phase 1 : aperçu local. Phase 2 : envoi vers Cloudinary via multer.
+// Images du produit : envoi vers Cloudinary (multer côté API), ou ajout d'une image déjà en ligne par son URL.
 function EditeurImages({ images, nomProduit, surChangement }) {
   const toast = useToast()
+  const [envoiEnCours, setEnvoiEnCours] = useState(false)
+  const [urlSaisie, setUrlSaisie] = useState('')
+  const complet = images.length >= NOMBRE_MAX_IMAGES
 
   const importer = async (evenement) => {
     const fichiers = Array.from(evenement.target.files ?? [])
     evenement.target.value = ''
     const acceptes = fichiers.filter((fichier) => TYPES_IMAGE.includes(fichier.type) && fichier.size <= TAILLE_MAX_IMAGE)
     if (acceptes.length < fichiers.length) toast('Images JPG, PNG ou WebP de 2 Mo maximum.', 'erreur')
+    if (acceptes.length === 0) return
+    setEnvoiEnCours(true)
     try {
-      const urls = await Promise.all(acceptes.map(lireFichier))
-      const nouvelles = urls.map((url) => ({ cle: nanoid(6), url, alt: nomProduit || 'Photo du produit' }))
+      const envoyees = await televerser(acceptes)
+      const nouvelles = envoyees.map(({ url, publicId }) => ({ url, publicId, alt: nomProduit || 'Photo du produit' }))
       surChangement([...images, ...nouvelles].slice(0, NOMBRE_MAX_IMAGES))
     } catch (erreur) {
-      toast(erreur.message, 'erreur')
+      toast(messageErreur(erreur), 'erreur')
+    } finally {
+      setEnvoiEnCours(false)
     }
+  }
+
+  const ajouterParUrl = () => {
+    const url = urlSaisie.trim()
+    if (!MOTIF_URL_HTTPS.test(url)) return toast('Saisissez une adresse d’image commençant par https://', 'erreur')
+    if (images.some((image) => image.url === url)) return toast('Cette image est déjà dans la liste.', 'erreur')
+    surChangement([...images, { url, alt: nomProduit || 'Photo du produit' }].slice(0, NOMBRE_MAX_IMAGES))
+    return setUrlSaisie('')
   }
 
   return (
@@ -89,15 +105,30 @@ function EditeurImages({ images, nomProduit, surChangement }) {
             </button>
           </li>
         ))}
-        {images.length < NOMBRE_MAX_IMAGES && (
+        {!complet && (
           <li>
             <label className="label flex h-20 w-20 cursor-pointer items-center justify-center rounded border border-dashed border-cuivre text-center text-cuivre transition-colors hover:border-brun hover:text-brun">
-              Ajouter
-              <input type="file" accept={TYPES_IMAGE.join(',')} multiple onChange={importer} className="sr-only" />
+              {envoiEnCours ? 'Envoi…' : 'Ajouter'}
+              <input type="file" accept={TYPES_IMAGE.join(',')} multiple disabled={envoiEnCours} onChange={importer} className="sr-only" />
             </label>
           </li>
         )}
       </ul>
+      {!complet && (
+        <div className="mt-3 flex gap-2">
+          <input
+            type="url"
+            aria-label="Adresse d'une image en ligne"
+            value={urlSaisie}
+            onChange={(evenement) => setUrlSaisie(evenement.target.value)}
+            placeholder="ou coller une adresse https://…"
+            className="champ-compact min-w-0 flex-1"
+          />
+          <button type="button" onClick={ajouterParUrl} className="champ-compact hover:border-brun">
+            OK
+          </button>
+        </div>
+      )}
     </fieldset>
   )
 }

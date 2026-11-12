@@ -7,6 +7,7 @@ import { selectProduits } from '../../store/slices/productsSlice'
 import { chiffreAffaires, formaterDate } from '../../utils/commande'
 import { formaterPrix } from '../../utils/format'
 import { BadgeStatut } from '../Profil'
+import { reference } from './CommandesAdmin'
 
 const SEUIL_STOCK_BAS = 5
 const NOMBRE_COMMANDES_RECENTES = 5
@@ -58,8 +59,8 @@ export default function TableauDeBord() {
               <tbody>
                 {commandes.slice(0, NOMBRE_COMMANDES_RECENTES).map((commande) => (
                   <tr key={commande._id}>
-                    <td className="font-medium">{commande._id}</td>
-                    <td>{commande.user.name}</td>
+                    <td className="font-medium">{reference(commande)}</td>
+                    <td>{commande.user?.name ?? 'Compte supprimé'}</td>
                     <td className="whitespace-nowrap">{formaterDate(commande.createdAt)}</td>
                     <td><BadgeStatut statut={commande.status} /></td>
                     <td className="text-right tabular-nums">{formaterPrix(commande.totalPrice)}</td>

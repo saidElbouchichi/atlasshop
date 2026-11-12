@@ -1,7 +1,8 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { useToast } from '../../hooks/useToast'
-import { changerRole, selectUtilisateur, selectUtilisateurs } from '../../store/slices/authSlice'
-import { selectCommandes } from '../../store/slices/ordersSlice'
+import { messageErreur } from '../../services/api'
+import { modifierRole as modifierRoleApi, selectUtilisateur, selectUtilisateurs } from '../../store/slices/authSlice'
+import { idClient, selectCommandes } from '../../store/slices/ordersSlice'
 import { formaterDate } from '../../utils/commande'
 
 // Liste des utilisateurs avec gestion du rôle (on ne peut pas retirer son propre rôle admin)
@@ -12,11 +13,15 @@ export default function UtilisateursAdmin() {
   const moi = useSelector(selectUtilisateur)
   const commandes = useSelector(selectCommandes)
 
-  const nombreCommandes = (id) => commandes.filter((commande) => commande.user._id === id).length
+  const nombreCommandes = (id) => commandes.filter((commande) => idClient(commande) === id).length
 
-  const modifierRole = (utilisateur, role) => {
-    dispatch(changerRole({ id: utilisateur._id, role }))
-    toast(`${utilisateur.name} est maintenant ${role === 'admin' ? 'administrateur' : 'client'}.`)
+  const modifierRole = async (utilisateur, role) => {
+    try {
+      await dispatch(modifierRoleApi({ id: utilisateur._id, role })).unwrap()
+      toast(`${utilisateur.name} est maintenant ${role === 'admin' ? 'administrateur' : 'client'}.`)
+    } catch (erreur) {
+      toast(messageErreur(erreur), 'erreur')
+    }
   }
 
   return (

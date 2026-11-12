@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary'
 import Stripe from 'stripe'
-import { cloudinaryConfigure, env, estProduction, stripeConfigure } from '../config/env.js'
+import { cloudinaryConfigure, env, paiementSimuleAutorise, stripeConfigure } from '../config/env.js'
 import Order from '../models/Order.js'
 import { ErreurHttp, asyncHandler, envoyer } from '../utils/outils.js'
 import { marquerPayee } from './orderController.js'
@@ -41,10 +41,16 @@ export const creerSessionPaiement = asyncHandler(async (req, res) => {
   const urlConfirmation = `${urlClient()}/confirmation/${commande._id}`
 
   if (!stripeConfigure()) {
-    // Sans clé Stripe, le paiement n'est simulé qu'en développement (jamais en production)
-    if (estProduction()) throw new ErreurHttp(503, 'Le paiement est momentanément indisponible.')
-    await marquerPayee(commande)
+    // Sans clé Stripe, le paiement n'est simulé qu'en local ET avec ALLOW_FAKE_PAYMENT=true
+    if (!paiementSimuleAutorise()) throw new ErreurHttp(503, 'Le paiement est momentanément indisponible.')
+    await marquerPayee(commande._id)
     return envoyer(res, { url: urlConfirmation, simule: true })
+  }
+
+  // Une seule session ouverte par commande : l'ancienne est fermée pour éviter un double paiement
+  const commandeAvecSession = await Order.findById(commande._id).select('+stripeSessionId')
+  if (commandeAvecSession.stripeSessionId) {
+    await stripe().checkout.sessions.expire(commandeAvecSession.stripeSessionId).catch(() => null)
   }
 
   const session = await stripe().checkout.sessions.create({
@@ -72,9 +78,17 @@ export const webhookStripe = asyncHandler(async (req, res) => {
     throw new ErreurHttp(400, 'Signature du webhook invalide.')
   }
 
-  if (evenement.type === 'checkout.session.completed' && evenement.data.object.payment_status === 'paid') {
-    const commande = await Order.findById(evenement.data.object.metadata?.orderId)
-    if (commande) await marquerPayee(commande)
+  const session = evenement.data.object
+  if (evenement.type === 'checkout.session.completed' && session.payment_status === 'paid') {
+    const commande = await Order.findById(session.metadata?.orderId).select('+stripeSessionId')
+    // La session doit être celle de la commande, pour le bon montant et la bonne devise
+    const coherente =
+      commande &&
+      commande.stripeSessionId === session.id &&
+      session.currency === DEVISE &&
+      session.amount_total === Math.round(commande.totalPrice * CENTIMES)
+    if (coherente) await marquerPayee(commande._id)
+    else console.error(`[stripe] Session ${session.id} incohérente avec la commande ${session.metadata?.orderId} : paiement à vérifier.`)
   }
   res.json({ received: true })
 })

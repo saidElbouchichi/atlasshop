@@ -2,7 +2,7 @@ import cors from 'cors'
 import express from 'express'
 import helmet from 'helmet'
 import morgan from 'morgan'
-import { env, estProduction, estTest } from './config/env.js'
+import { env, estDeveloppement, estTest } from './config/env.js'
 import { webhookStripe } from './controllers/paymentController.js'
 import { errorHandler, limiteurGeneral, notFound, refuserOperateurs } from './middleware/erreurs.js'
 import routes from './routes/index.js'
@@ -19,7 +19,7 @@ export function creerApp() {
 
   app.use(helmet())
   app.use(cors({ origin: env.clientUrls, methods: ['GET', 'POST', 'PUT', 'DELETE'], allowedHeaders: ['Content-Type', 'Authorization'] }))
-  if (!estTest()) app.use(morgan(estProduction() ? 'combined' : 'dev'))
+  if (!estTest()) app.use(morgan(estDeveloppement() ? 'dev' : 'combined'))
 
   // Le webhook Stripe a besoin du corps brut pour vérifier la signature : il passe avant express.json()
   app.post('/api/payments/webhook', express.raw({ type: 'application/json' }), webhookStripe)

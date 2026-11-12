@@ -5,24 +5,42 @@ import { ErreurHttp, asyncHandler, calculerTotaux, envoyer } from '../utils/outi
 
 const NOMBRE_MAX_ADRESSES = 5
 
-// Marque une commande comme payée et décrémente les stocks (appelé par le webhook Stripe)
-export async function marquerPayee(commande) {
-  if (commande.isPaid) return commande
-  await Promise.all(
+// Marque une commande comme payée et décrémente les stocks (webhook Stripe ou paiement simulé).
+// Retourne la commande payée, ou null si elle l'était déjà ou si elle est annulée.
+export async function marquerPayee(idCommande) {
+  // Une seule requête atomique : si Stripe rejoue l'événement, le second appel ne trouve plus
+  // de commande « non payée » et le stock n'est donc décrémenté qu'une fois
+  const commande = await Order.findOneAndUpdate(
+    { _id: idCommande, isPaid: false, status: mongoose.trusted({ $ne: 'annulée' }) },
+    { isPaid: true, paidAt: new Date(), status: 'payée' },
+    { new: true },
+  )
+  if (!commande) return null
+
+  const resultats = await Promise.all(
     commande.items.map((article) =>
       // Le stock ne descend jamais sous zéro
       Product.updateOne({ _id: article.product, stock: mongoose.trusted({ $gte: article.qty }) }, { $inc: { stock: -article.qty } }),
     ),
   )
-  commande.isPaid = true
-  commande.paidAt = new Date()
-  commande.status = 'payée'
-  return commande.save()
+  // Stock épuisé entre la commande et le paiement : la commande est payée, il faut la traiter à la main
+  if (resultats.some((resultat) => resultat.modifiedCount === 0)) {
+    console.error(`[stock] Commande ${commande._id} payée avec un stock insuffisant : à vérifier (réassort ou remboursement).`)
+  }
+  return commande
+}
+
+// Deux lignes du même produit sont additionnées avant le contrôle du stock
+function fusionnerLignes(items) {
+  const quantites = new Map()
+  items.forEach(({ product, qty }) => quantites.set(String(product), (quantites.get(String(product)) ?? 0) + qty))
+  return [...quantites].map(([product, qty]) => ({ product, qty }))
 }
 
 // POST /api/orders — les prix et les noms viennent de la base, jamais de la requête
 export const creerCommande = asyncHandler(async (req, res) => {
-  const { items, shippingAddress } = req.body
+  const { shippingAddress } = req.body
+  const items = fusionnerLignes(req.body.items)
   const produits = await Product.find({ _id: mongoose.trusted({ $in: items.map((article) => String(article.product)) }) })
   const parId = new Map(produits.map((produit) => [produit._id.toString(), produit]))
 

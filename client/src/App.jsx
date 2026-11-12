@@ -1,4 +1,6 @@
+import { useEffect } from 'react'
 import { AnimatePresence, MotionConfig } from 'framer-motion'
+import { useDispatch } from 'react-redux'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import EcranChargement from './components/layout/EcranChargement'
 import Footer from './components/layout/Footer'
@@ -24,6 +26,9 @@ import PageIntrouvable from './pages/PageIntrouvable'
 import Panier from './pages/Panier'
 import Profil from './pages/Profil'
 import Admin from './pages/admin/Admin'
+import { chargerSession } from './store/slices/authSlice'
+import { chargerCategories } from './store/slices/categoriesSlice'
+import { chargerProduits } from './store/slices/productsSlice'
 import { revenirEnHaut } from './utils/defilement'
 
 const PREFIXE_ADMIN = '/admin'
@@ -36,7 +41,15 @@ const pageProtegee = (contenu, options) => page(<RouteProtegee {...options}>{con
 
 export default function App() {
   const location = useLocation()
+  const dispatch = useDispatch()
   useDefilementFluide()
+
+  // Au démarrage : catalogue, catégories et session (si un jeton est mémorisé)
+  useEffect(() => {
+    dispatch(chargerProduits())
+    dispatch(chargerCategories())
+    dispatch(chargerSession())
+  }, [dispatch])
 
   return (
     // reducedMotion="user" : Framer Motion respecte prefers-reduced-motion

@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit'
 
-export const CLE_STOCKAGE_PANIER = 'atlasshop_panier'
+export const CLE_STOCKAGE_PANIER = 'atlasshop_panier_v2'
 const QUANTITE_MIN = 1
 
 // Un article n'est accepté que s'il a la forme attendue (le localStorage n'est pas fiable)

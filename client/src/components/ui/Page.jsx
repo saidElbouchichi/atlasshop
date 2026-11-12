@@ -2,7 +2,8 @@ import { useRef } from 'react'
 import { useSelector } from 'react-redux'
 import { Navigate, useLocation } from 'react-router-dom'
 import { useRevelations } from '../../hooks/useRevelations'
-import { selectUtilisateur } from '../../store/slices/authSlice'
+import { selectStatutSession, selectUtilisateur } from '../../store/slices/authSlice'
+import { Chargeur } from './Etoile'
 import { MotsReveles } from './Mouvement'
 
 // En-tête commun des pages intérieures : petit label, grand titre, texte d'introduction
@@ -56,11 +57,19 @@ export function SqueletteCarte() {
 }
 
 // Route réservée aux utilisateurs connectés (et aux admins si `admin` est vrai).
-// Protection d'interface uniquement : la vraie vérification se fera côté serveur en Phase 2.
+// Confort d'interface : la vraie vérification est faite par l'API (middlewares protect et admin).
 export function RouteProtegee({ admin = false, children }) {
   const utilisateur = useSelector(selectUtilisateur)
+  const statut = useSelector(selectStatutSession)
   const location = useLocation()
 
+  if (statut === 'verification') {
+    return (
+      <div className="flex min-h-[100svh] items-center justify-center">
+        <Chargeur texte="Vérification de la session…" />
+      </div>
+    )
+  }
   if (!utilisateur) {
     return <Navigate to={`/connexion?redirect=${encodeURIComponent(location.pathname)}`} replace />
   }

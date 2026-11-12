@@ -1,11 +1,10 @@
-import { nanoid } from '@reduxjs/toolkit'
 import { useDispatch, useSelector } from 'react-redux'
 import { Link, Navigate, useNavigate, useSearchParams } from 'react-router-dom'
 import { FiligraneEtoile } from '../components/ui/Etoile'
 import { Champ } from '../components/ui/Formulaire'
 import { useFormulaire } from '../hooks/useFormulaire'
 import { useToast } from '../hooks/useToast'
-import { connecter, inscrire, selectUtilisateur, selectUtilisateurs, trouverParEmail } from '../store/slices/authSlice'
+import { connexion, inscription, selectUtilisateur } from '../store/slices/authSlice'
 import { validerConnexion, validerInscription } from '../utils/validation'
 
 // N'accepte qu'un chemin interne comme redirection (évite les redirections ouvertes)
@@ -13,19 +12,23 @@ function cheminSur(redirection) {
   return redirection && redirection.startsWith('/') && !redirection.startsWith('//') ? redirection : '/profil'
 }
 
-function FormulaireConnexion({ surSucces }) {
+// Envoie le formulaire à l'API ; en cas de refus, affiche le détail par champ ou le message général
+function useEnvoi(action, surSucces, messageDeBienvenue) {
   const dispatch = useDispatch()
-  const utilisateurs = useSelector(selectUtilisateurs)
-
-  const { champ, soumettre, setErreurs } = useFormulaire({ email: '', password: '' }, validerConnexion, ({ email }) => {
-    const utilisateur = trouverParEmail(utilisateurs, email)
-    if (!utilisateur) {
-      setErreurs({ email: 'Aucun compte ne correspond à cet e-mail.' })
-      return
+  return (setErreurs) => async (valeurs) => {
+    try {
+      const utilisateur = await dispatch(action(valeurs)).unwrap()
+      surSucces(messageDeBienvenue(utilisateur.name.split(' ')[0]))
+    } catch (erreur) {
+      setErreurs(erreur.champs ?? { email: erreur.message })
     }
-    dispatch(connecter(utilisateur))
-    surSucces(`Heureux de vous revoir, ${utilisateur.name.split(' ')[0]}.`)
-  })
+  }
+}
+
+function FormulaireConnexion({ surSucces }) {
+  const envoyer = useEnvoi(connexion, surSucces, (prenom) => `Heureux de vous revoir, ${prenom}.`)
+  const formulaire = useFormulaire({ email: '', password: '' }, validerConnexion, (valeurs) => envoyer(formulaire.setErreurs)(valeurs))
+  const { champ, soumettre } = formulaire
 
   return (
     <form onSubmit={soumettre} noValidate className="grid gap-5">
@@ -37,28 +40,13 @@ function FormulaireConnexion({ surSucces }) {
 }
 
 function FormulaireInscription({ surSucces }) {
-  const dispatch = useDispatch()
-  const utilisateurs = useSelector(selectUtilisateurs)
-
-  const { champ, soumettre, setErreurs } = useFormulaire(
+  const envoyer = useEnvoi(inscription, surSucces, (prenom) => `Bienvenue chez AtlasShop, ${prenom}.`)
+  const formulaire = useFormulaire(
     { name: '', email: '', password: '', confirmation: '' },
     validerInscription,
-    ({ name, email }) => {
-      if (trouverParEmail(utilisateurs, email)) {
-        setErreurs({ email: 'Un compte existe déjà avec cet e-mail.' })
-        return
-      }
-      const utilisateur = {
-        _id: `u-${nanoid(6)}`,
-        name: name.trim(),
-        email: email.trim().toLowerCase(),
-        role: 'user',
-        createdAt: new Date().toISOString().slice(0, 10),
-      }
-      dispatch(inscrire(utilisateur))
-      surSucces(`Bienvenue chez AtlasShop, ${utilisateur.name.split(' ')[0]}.`)
-    },
+    ({ name, email, password }) => envoyer(formulaire.setErreurs)({ name: name.trim(), email: email.trim(), password }),
   )
+  const { champ, soumettre } = formulaire
 
   return (
     <form onSubmit={soumettre} noValidate className="grid gap-5">
@@ -117,13 +105,6 @@ export default function Compte({ mode = 'connexion' }) {
             </Link>
           </p>
 
-          {!estInscription && (
-            <div className="mt-10 border border-sable bg-beige p-5 text-[13px] text-brun/80">
-              <p className="label mb-2 text-cuivre">Comptes de démo · Phase 1</p>
-              <p>Admin : admin@atlasshop.ma — Client : salma@atlasshop.ma</p>
-              <p className="mt-1">L'authentification est simulée : n'importe quel mot de passe de 6 caractères est accepté.</p>
-            </div>
-          )}
         </div>
       </div>
     </section>
