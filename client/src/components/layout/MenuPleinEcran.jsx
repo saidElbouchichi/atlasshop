@@ -12,6 +12,7 @@ const LIENS = [
   { vers: '/', texte: 'Accueil' },
   { vers: '/catalogue', texte: 'Catalogue' },
   { vers: '/artisans', texte: 'Nos artisans' },
+  { vers: '/a-propos', texte: 'À propos' },
   { vers: '/panier', texte: 'Panier' },
   { vers: '/connexion', texte: 'Mon compte' },
 ]
@@ -84,7 +85,7 @@ export default function MenuPleinEcran() {
                       className="group flex items-baseline gap-6 py-3 transition-colors duration-300 hover:text-ambre sm:py-4"
                     >
                       <span className="label w-8 text-dune">{deuxChiffres(position + 1)}</span>
-                      <span className="text-[clamp(36px,7vw,88px)] leading-none tracking-[-0.04em] transition-transform duration-500 ease-luxe group-hover:translate-x-3">
+                      <span className="text-[clamp(32px,6vw,76px)] leading-none tracking-[-0.04em] transition-transform duration-500 ease-luxe group-hover:translate-x-3">
                         {lien.texte}
                       </span>
                     </Link>

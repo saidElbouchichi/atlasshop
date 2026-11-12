@@ -1,5 +1,6 @@
 import { useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
+import { auteur, ecole } from '../../data/projet'
 import { selectCategories } from '../../store/slices/categoriesSlice'
 import { lienWhatsApp } from '../../utils/whatsapp'
 import Etoile, { FiligraneEtoile } from '../ui/Etoile'
@@ -17,6 +18,7 @@ const RESEAUX = [
 const LIENS_MAISON = [
   { vers: '/catalogue', texte: 'Catalogue' },
   { vers: '/artisans', texte: 'Nos artisans' },
+  { vers: '/a-propos', texte: 'À propos' },
   { vers: '/connexion', texte: 'Mon compte' },
   { vers: '/panier', texte: 'Panier' },
 ]
@@ -102,9 +104,18 @@ export default function Footer() {
         </nav>
       </div>
 
-      <div className="relative flex flex-col gap-2 border-t border-creme/15 px-gouttiere py-6 sm:flex-row sm:justify-between">
-        <p className="label text-dune">© {ANNEE} AtlasShop — Projet final GOMYCODE</p>
-        <p className="label text-dune">Livraison partout au Maroc · Paiement sécurisé</p>
+      <div className="relative flex flex-col gap-2 border-t border-creme/15 px-gouttiere py-6 sm:flex-row sm:items-end sm:justify-between sm:gap-8">
+        <div>
+          <p className="label text-creme">
+            © {ANNEE} AtlasShop · Conçu et développé par{' '}
+            <Link to="/a-propos" className="text-ambre hover:text-creme">{auteur.nom}</Link>
+          </p>
+          <p className="mt-2 max-w-xl text-[13px] text-dune">{ecole.mention}</p>
+        </div>
+        <div className="sm:text-right">
+          <a href={`mailto:${auteur.email}`} className="text-[14px] text-creme transition-colors duration-300 hover:text-ambre">{auteur.email}</a>
+          <p className="label mt-2 text-dune">Livraison partout au Maroc · Paiement sécurisé</p>
+        </div>
       </div>
     </footer>
   )

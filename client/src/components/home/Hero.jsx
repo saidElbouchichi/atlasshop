@@ -4,10 +4,11 @@ import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Link } from 'react-router-dom'
 import { CLIP_CACHE, CLIP_VISIBLE, MOUVEMENT_AUTORISE } from '../../hooks/useRevelations'
 import { delaiIntro } from '../../utils/intro'
+import DiaporamaAmbiance from './DiaporamaAmbiance'
+import SystemeOrbital from './SystemeOrbital'
 import Compteur from '../ui/Compteur'
 import Etoile from '../ui/Etoile'
 import { IconeFleche } from '../ui/Icones'
-import Photo from '../ui/Photo'
 import { SoulignementVague } from '../ui/Vague'
 
 gsap.registerPlugin(ScrollTrigger)
@@ -15,14 +16,12 @@ gsap.registerPlugin(ScrollTrigger)
 const MOTS_DU_TITRE = ["L'art", 'marocain,', 'façonné', 'à', 'la', 'main.']
 const MOTS_ACCENTUES = new Set(['façonné'])
 
-const IMAGE_AMBIANCE = {
-  id: '1505576391880-b3f9d713dc4f',
-  alt: "Galerie d'un riad aux murs ocre baignée de lumière dorée",
-}
-const IMAGE_FLOTTANTE = {
-  id: '1618722060945-b87f7326995b',
-  alt: 'Amphore en terre cuite tournée à la main',
-}
+const IMAGES_AMBIANCE = [
+  { id: '1505576391880-b3f9d713dc4f', alt: "Galerie d'un riad aux murs ocre baignée de lumière dorée" },
+  { id: '1672837350483-1131c1c31422', alt: 'Ruelle aux murs de terre cuite dans la médina de Marrakech' },
+  { id: '1540396515873-dd778f7679e7', alt: 'Patio de riad avec zelliges, plantes et mobilier en bois' },
+  { id: '1544234674-d099c6efdb0d', alt: 'Salon marocain traditionnel aux banquettes et tapis colorés' },
+]
 
 const CHIFFRES = [
   { valeur: 120, suffixe: '+', texte: 'Artisans partenaires' },
@@ -31,7 +30,7 @@ const CHIFFRES = [
 ]
 
 // Hero multi-couches : titre révélé mot par mot, photo dévoilée par clip-path,
-// parallaxe souris + scroll sur la photo et les éléments décoratifs, CTA en fondu.
+// diaporama d'ambiance, système orbital de pièces et d'étoiles, parallaxe souris + scroll, CTA en fondu.
 export default function Hero() {
   const refHero = useRef(null)
   // On attend la fin de l'écran de chargement (ou du rideau de transition) avant de lancer l'intro
@@ -70,7 +69,7 @@ export default function Hero() {
           scrollTrigger: { trigger: refHero.current, start: 'top top', end: 'bottom top', scrub: true },
         })
         gsap.to('[data-hero-flottant]', {
-          yPercent: -35,
+          yPercent: -12,
           ease: 'none',
           scrollTrigger: { trigger: refHero.current, start: 'top top', end: 'bottom top', scrub: true },
         })
@@ -161,32 +160,22 @@ export default function Hero() {
       <div className="relative min-h-[70svh] lg:col-span-5 lg:min-h-0">
         <div data-hero-cadre className="absolute inset-0 overflow-hidden bg-sable">
           <div data-profondeur="-18" className="absolute -inset-[5%]">
-            <Photo
-              data-hero-photo
-              image={IMAGE_AMBIANCE}
-              sizes="(min-width: 1024px) 42vw, 100vw"
-              prioritaire
-              className="h-full w-full object-cover"
-            />
+            <div data-hero-photo className="relative h-full w-full">
+              <DiaporamaAmbiance images={IMAGES_AMBIANCE} sizes="(min-width: 1024px) 42vw, 100vw" />
+            </div>
           </div>
+          {/* Voile sombre : fait ressortir les orbites et les étoiles sur la photo */}
+          <div className="absolute inset-0 bg-brun/35" aria-hidden="true" />
         </div>
 
-        {/* Carte flottante qui chevauche les deux colonnes */}
-        <div
-          data-hero-flottant
-          className="absolute bottom-10 left-6 z-10 w-36 sm:w-44 lg:-left-10 lg:bottom-16 lg:w-48"
-        >
-          <div data-profondeur="34" className="rounded border border-sable bg-creme p-2">
-            <Photo
-              image={IMAGE_FLOTTANTE}
-              sizes="200px"
-              prioritaire
-              className="aspect-[4/5] w-full rounded object-cover"
-            />
-            <p className="label mt-2 flex justify-between px-1 pb-1">
-              <span>Amphore Zagora</span>
-              <span className="text-ambre">N° 04</span>
-            </p>
+        {/* Système orbital : les pièces gravitent autour de l'amphore Zagora, parmi les étoiles */}
+        <div className="absolute inset-0 z-10 flex items-center justify-center overflow-hidden">
+          <div data-hero-flottant>
+            <div data-profondeur="30">
+              <div className="scale-[0.56] sm:scale-75 xl:scale-90 2xl:scale-100">
+                <SystemeOrbital />
+              </div>
+            </div>
           </div>
         </div>
 

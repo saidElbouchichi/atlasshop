@@ -42,10 +42,15 @@ export default {
       keyframes: {
         defile: { to: { transform: 'translateX(-50%)' } },
         tourne: { to: { transform: 'rotate(360deg)' } },
+        scintille: {
+          '0%, 100%': { opacity: '0.25', transform: 'scale(0.7) rotate(0deg)' },
+          '50%': { opacity: '1', transform: 'scale(1.15) rotate(45deg)' },
+        },
       },
       animation: {
         defile: 'defile 36s linear infinite',
         tourne: 'tourne 22s linear infinite',
+        scintille: 'scintille 3.6s ease-in-out infinite',
       },
     },
   },

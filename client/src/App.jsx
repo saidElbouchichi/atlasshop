@@ -12,6 +12,7 @@ import { RouteProtegee } from './components/ui/Page'
 import Toasts from './components/ui/Toasts'
 import { useDefilementFluide } from './hooks/useDefilementFluide'
 import Accueil from './pages/Accueil'
+import APropos from './pages/APropos'
 import Artisans from './pages/Artisans'
 import Catalogue from './pages/Catalogue'
 import Checkout from './pages/Checkout'
@@ -60,6 +61,7 @@ export default function App() {
             <Route path="/catalogue" element={page(<Catalogue />)} />
             <Route path="/produit/:slug" element={page(<FicheProduit />)} />
             <Route path="/artisans" element={page(<Artisans />)} />
+            <Route path="/a-propos" element={page(<APropos />)} />
             <Route path="/panier" element={page(<Panier />)} />
             <Route path="/connexion" element={page(<Compte mode="connexion" />)} />
             <Route path="/inscription" element={page(<Compte mode="inscription" />)} />

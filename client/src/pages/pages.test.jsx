@@ -28,6 +28,7 @@ describe('pages publiques', () => {
     ['/catalogue?category=cuir&sort=prix-asc', 'Toute la collection'],
     ['/produit/amphore-zagora', 'Amphore Zagora'],
     ['/artisans', 'Fatima Aït Ouakrim'],
+    ['/a-propos', 'Said El Bouchichi'],
     ['/panier', 'Votre panier est vide'],
     ['/connexion', 'Heureux de vous revoir'],
     ['/inscription', 'Créer un compte'],
