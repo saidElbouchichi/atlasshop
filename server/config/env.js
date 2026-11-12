@@ -56,6 +56,9 @@ export const cloudinaryConfigure = () =>
 // et le drapeau ALLOW_FAKE_PAYMENT=true. Il ne peut donc pas s'activer par oubli en production.
 export const paiementSimuleAutorise = () => local && process.env.ALLOW_FAKE_PAYMENT === 'true'
 
+// Le paiement par carte est proposé si Stripe est configuré (ou simulé en local)
+export const carteDisponible = () => stripeConfigure() || paiementSimuleAutorise()
+
 const LONGUEUR_MIN_SECRET = 32
 
 // Échoue tôt, avec un message clair, si une variable indispensable manque
@@ -64,11 +67,9 @@ export function verifierEnv({ exigerMongo = true } = {}) {
   if (exigerMongo && !env.mongoUri) manquantes.push('MONGO_URI')
   if (!env.jwtSecret) manquantes.push('JWT_SECRET')
   if (env.clientUrls.length === 0) manquantes.push('CLIENT_URL')
-  // Sans paiement simulé, Stripe est indispensable : clé secrète et secret du webhook
-  if (!paiementSimuleAutorise()) {
-    if (!env.stripeSecretKey) manquantes.push('STRIPE_SECRET_KEY')
-    if (!env.stripeWebhookSecret) manquantes.push('STRIPE_WEBHOOK_SECRET')
-  }
+  // Stripe est optionnel (le paiement à la livraison fonctionne sans). Mais une clé Stripe sans secret
+  // de webhook encaisserait des paiements qui ne seraient jamais confirmés : on le refuse.
+  if (env.stripeSecretKey && !env.stripeWebhookSecret) manquantes.push('STRIPE_WEBHOOK_SECRET')
   if (manquantes.length > 0) {
     throw new Error(`Variables d'environnement manquantes : ${manquantes.join(', ')} (voir server/.env.example)`)
   }

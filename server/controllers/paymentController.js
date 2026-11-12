@@ -1,6 +1,6 @@
 import { v2 as cloudinary } from 'cloudinary'
 import Stripe from 'stripe'
-import { cloudinaryConfigure, env, paiementSimuleAutorise, stripeConfigure } from '../config/env.js'
+import { carteDisponible, cloudinaryConfigure, env, paiementSimuleAutorise, stripeConfigure } from '../config/env.js'
 import Order from '../models/Order.js'
 import { ErreurHttp, asyncHandler, envoyer } from '../utils/outils.js'
 import { marquerPayee } from './orderController.js'
@@ -31,12 +31,16 @@ function lignesStripe(commande) {
   return lignes
 }
 
+// GET /api/payments/methods — moyens de paiement proposés au checkout
+export const moyensDePaiement = (_req, res) => envoyer(res, { carte: carteDisponible(), livraison: true })
+
 // POST /api/payments/create-checkout-session { orderId }
 export const creerSessionPaiement = asyncHandler(async (req, res) => {
   const commande = await Order.findById(req.body.orderId)
   if (!commande || commande.user.toString() !== req.user._id.toString()) throw new ErreurHttp(404, 'Commande introuvable.')
   if (commande.isPaid) throw new ErreurHttp(409, 'Cette commande est déjà payée.')
   if (commande.status === 'annulée') throw new ErreurHttp(409, 'Cette commande est annulée.')
+  if (commande.paymentMethod === 'livraison') throw new ErreurHttp(409, 'Cette commande se règle à la livraison.')
 
   const urlConfirmation = `${urlClient()}/confirmation/${commande._id}`
 

@@ -286,6 +286,43 @@ describe('commandes et paiement', () => {
     expect(deuxiemeFois.status).toBe(409)
   })
 
+  test('paiement à la livraison : stock réservé à la commande, réglé à la livraison, remis en stock si annulé', async () => {
+    const bol = await produitParSlug('bol-safi-emaille')
+    const passer = () => api.post('/api/orders').set(avec(jetonClient)).send({ items: [{ product: bol._id, qty: 2 }], shippingAddress: adresse, paymentMethod: 'livraison' })
+
+    const premiere = (await passer()).body.data
+    const stockReserve = (await Product.findById(bol._id)).stock
+    const parCarte = await api.post('/api/payments/create-checkout-session').set(avec(jetonClient)).send({ orderId: premiere._id })
+    const livree = (await api.put(`/api/orders/${premiere._id}/status`).set(avec(jetonAdmin)).send({ status: 'livrée' })).body.data
+    const seconde = (await passer()).body.data
+    await api.put(`/api/orders/${seconde._id}/status`).set(avec(jetonAdmin)).send({ status: 'annulée' })
+    await api.put(`/api/orders/${seconde._id}/status`).set(avec(jetonAdmin)).send({ status: 'annulée' })
+    const stockFinal = (await Product.findById(bol._id)).stock
+
+    expect(premiere).toMatchObject({ paymentMethod: 'livraison', isPaid: false, status: 'en attente' })
+    expect(stockReserve).toBe(bol.stock - 2)
+    expect(parCarte.status).toBe(409)
+    expect(livree).toMatchObject({ status: 'livrée', isPaid: true })
+    // La seconde commande, annulée deux fois, n'est remise en stock qu'une fois
+    expect(stockFinal).toBe(bol.stock - 2)
+  })
+
+  test('annonce les moyens de paiement et refuse un moyen inconnu', async () => {
+    const bol = await produitParSlug('bol-safi-emaille')
+    const inconnu = await api.post('/api/orders').set(avec(jetonClient)).send({ items: [{ product: bol._id, qty: 1 }], shippingAddress: adresse, paymentMethod: 'troc' })
+
+    expect((await api.get('/api/payments/methods')).body.data).toEqual({ carte: true, livraison: true })
+    expect(inconnu.status).toBe(400)
+  })
+
+  test('deux lignes du même produit sont additionnées avant le contrôle du stock', async () => {
+    const tapis = await produitParSlug('tapis-beni-ouarain-l')
+
+    const reponse = await commander(jetonClient, [{ product: tapis._id, qty: tapis.stock }, { product: tapis._id, qty: 1 }])
+
+    expect(reponse.status).toBe(409)
+  })
+
   test('on ne peut pas payer la commande d’un autre client', async () => {
     const bol = await produitParSlug('bol-safi-emaille')
     const { _id } = (await commander(jetonClient, [{ product: bol._id, qty: 1 }])).body.data

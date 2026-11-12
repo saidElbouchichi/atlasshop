@@ -1,6 +1,7 @@
 import mongoose from 'mongoose'
 import Order, { STATUTS_COMMANDE } from '../models/Order.js'
 import Product from '../models/Product.js'
+import { carteDisponible } from '../config/env.js'
 import { ErreurHttp, asyncHandler, calculerTotaux, envoyer } from '../utils/outils.js'
 
 const NOMBRE_MAX_ADRESSES = 5
@@ -17,17 +18,35 @@ export async function marquerPayee(idCommande) {
   )
   if (!commande) return null
 
-  const resultats = await Promise.all(
-    commande.items.map((article) =>
-      // Le stock ne descend jamais sous zéro
-      Product.updateOne({ _id: article.product, stock: mongoose.trusted({ $gte: article.qty }) }, { $inc: { stock: -article.qty } }),
-    ),
-  )
   // Stock épuisé entre la commande et le paiement : la commande est payée, il faut la traiter à la main
-  if (resultats.some((resultat) => resultat.modifiedCount === 0)) {
+  if (!(await retirerDuStock(commande.items))) {
     console.error(`[stock] Commande ${commande._id} payée avec un stock insuffisant : à vérifier (réassort ou remboursement).`)
   }
+  await Order.updateOne({ _id: commande._id }, { stockReserve: true })
   return commande
+}
+
+const ajusterStock = (article, sens) =>
+  // Au retrait, le stock ne descend jamais sous zéro
+  Product.updateOne(
+    sens < 0 ? { _id: article.product, stock: mongoose.trusted({ $gte: article.qty }) } : { _id: article.product },
+    { $inc: { stock: sens * article.qty } },
+  )
+
+// Retire les articles du stock. Retourne false si l'un d'eux manquait.
+async function retirerDuStock(articles) {
+  const resultats = await Promise.all(articles.map((article) => ajusterStock(article, -1)))
+  return resultats.every((resultat) => resultat.modifiedCount === 1)
+}
+
+const remettreEnStock = (articles) => Promise.all(articles.map((article) => ajusterStock(article, 1)))
+
+// Retire tout ou rien : si un article manque, ceux déjà retirés sont remis en stock
+async function reserverStock(articles) {
+  const resultats = await Promise.all(articles.map((article) => ajusterStock(article, -1)))
+  if (resultats.every((resultat) => resultat.modifiedCount === 1)) return true
+  await remettreEnStock(articles.filter((_article, position) => resultats[position].modifiedCount === 1))
+  return false
 }
 
 // Deux lignes du même produit sont additionnées avant le contrôle du stock
@@ -39,7 +58,10 @@ function fusionnerLignes(items) {
 
 // POST /api/orders — les prix et les noms viennent de la base, jamais de la requête
 export const creerCommande = asyncHandler(async (req, res) => {
-  const { shippingAddress } = req.body
+  const { shippingAddress, paymentMethod = 'carte' } = req.body
+  if (paymentMethod === 'carte' && !carteDisponible()) {
+    throw new ErreurHttp(400, 'Le paiement par carte est indisponible. Choisissez le paiement à la livraison.')
+  }
   const items = fusionnerLignes(req.body.items)
   const produits = await Product.find({ _id: mongoose.trusted({ $in: items.map((article) => String(article.product)) }) })
   const parId = new Map(produits.map((produit) => [produit._id.toString(), produit]))
@@ -51,10 +73,16 @@ export const creerCommande = asyncHandler(async (req, res) => {
     return { product: produit._id, name: produit.name, image: produit.images[0] ?? null, price: produit.price, qty }
   })
 
+  // Paiement à la livraison : les articles sont réservés dès la commande (par carte, ils le sont au paiement)
+  const aLaLivraison = paymentMethod === 'livraison'
+  if (aLaLivraison && !(await reserverStock(articles))) throw new ErreurHttp(409, 'Stock insuffisant pour cette commande.')
+
   const commande = await Order.create({
     user: req.user._id,
     items: articles,
     shippingAddress,
+    paymentMethod,
+    stockReserve: aLaLivraison,
     ...calculerTotaux(articles),
   })
 
@@ -93,8 +121,19 @@ export const listerCommandes = asyncHandler(async (_req, res) => {
 export const changerStatut = asyncHandler(async (req, res) => {
   const { status } = req.body
   if (!STATUTS_COMMANDE.includes(status)) throw new ErreurHttp(400, 'Statut inconnu.')
-  const commande = await Order.findById(req.params.id).populate('user', 'name email')
+  const commande = await Order.findById(req.params.id).select('+stockReserve').populate('user', 'name email')
   if (!commande) throw new ErreurHttp(404, 'Commande introuvable.')
+
+  // Annulation : les articles réservés retournent en stock (une seule fois)
+  if (status === 'annulée' && commande.stockReserve) {
+    await remettreEnStock(commande.items)
+    commande.stockReserve = false
+  }
+  // Paiement à la livraison : la commande est réglée au moment où elle est livrée
+  if (status === 'livrée' && commande.paymentMethod === 'livraison' && !commande.isPaid) {
+    commande.isPaid = true
+    commande.paidAt = new Date()
+  }
   commande.status = status
   envoyer(res, await commande.save())
 })

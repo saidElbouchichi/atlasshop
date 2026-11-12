@@ -3,6 +3,7 @@ import { imageSchema } from './Product.js'
 import { adresseSchemaPartage } from './User.js'
 
 export const STATUTS_COMMANDE = ['en attente', 'payée', 'expédiée', 'livrée', 'annulée']
+export const MOYENS_PAIEMENT = ['carte', 'livraison']
 
 const articleSchema = new mongoose.Schema(
   {
@@ -24,7 +25,10 @@ const orderSchema = new mongoose.Schema(
     itemsPrice: { type: Number, required: true, min: 0 },
     shippingPrice: { type: Number, required: true, min: 0 },
     totalPrice: { type: Number, required: true, min: 0 },
+    paymentMethod: { type: String, enum: MOYENS_PAIEMENT, default: 'carte' },
     isPaid: { type: Boolean, default: false },
+    // Vrai dès que les articles ont été retirés du stock (au paiement par carte, ou à la commande si paiement à la livraison)
+    stockReserve: { type: Boolean, default: false, select: false },
     paidAt: { type: Date, default: null },
     status: { type: String, enum: STATUTS_COMMANDE, default: 'en attente' },
     stripeSessionId: { type: String, default: '', select: false },
@@ -34,7 +38,7 @@ const orderSchema = new mongoose.Schema(
 
 orderSchema.set('toJSON', {
   transform: (_document, objet) => {
-    const { __v: _version, stripeSessionId: _session, ...reste } = objet
+    const { __v: _version, stripeSessionId: _session, stockReserve: _stock, ...reste } = objet
     return reste
   },
 })

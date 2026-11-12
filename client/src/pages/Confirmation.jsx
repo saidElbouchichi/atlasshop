@@ -50,12 +50,20 @@ export default function Confirmation() {
   if (!commande) return <PageIntrouvable />
 
   const { shippingAddress: adresse } = commande
+  const aLaLivraison = commande.paymentMethod === 'livraison'
+  // Une commande à régler à la livraison est confirmée dès son enregistrement
+  const confirmee = commande.isPaid || aLaLivraison
+  const etatPaiement = commande.isPaid
+    ? `Payée le ${formaterDate(commande.paidAt)}`
+    : aLaLivraison
+      ? 'À régler à la livraison'
+      : 'En attente'
 
   return (
     <>
-      <EnTetePage label="Commande · étape 03 / 03" titre={commande.isPaid ? 'Merci, votre commande est confirmée.' : 'Commande enregistrée, paiement en attente.'}>
-        {commande.isPaid
-          ? 'Un artisan prépare déjà votre colis. Vous recevrez un message dès son expédition.'
+      <EnTetePage label="Commande · étape 03 / 03" titre={confirmee ? 'Merci, votre commande est confirmée.' : 'Commande enregistrée, paiement en attente.'}>
+        {confirmee
+          ? `Un artisan prépare déjà votre colis. ${aLaLivraison && !commande.isPaid ? 'Vous réglerez en espèces à la livraison.' : 'Vous recevrez un message dès son expédition.'}`
           : 'Nous attendons la confirmation de votre paiement. Cette page se met à jour dès sa réception.'}
       </EnTetePage>
 
@@ -69,7 +77,7 @@ export default function Confirmation() {
             {[
               ['Date', formaterDate(commande.createdAt)],
               ['Statut', commande.status],
-              ['Paiement', commande.isPaid ? `Payée le ${formaterDate(commande.paidAt)}` : 'En attente'],
+              ['Paiement', etatPaiement],
               ['Livraison', `${adresse.fullName}, ${adresse.address}, ${adresse.postalCode} ${adresse.city}`],
               ['Téléphone', adresse.phone],
             ].map(([label, valeur]) => (

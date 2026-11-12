@@ -42,7 +42,7 @@ avec paiement simulé ; les comptes de démo et leurs mots de passe s'affichent 
 
 1. **MongoDB Atlas** : créer un cluster gratuit, un utilisateur de base, autoriser l'accès réseau `0.0.0.0/0`, copier l'URI.
 2. **API sur Render** : New > Blueprint, choisir ce dépôt (`render.yaml` configure le service) puis saisir
-   `MONGO_URI`, `CLIENT_URL` (URL Vercel), les clés Stripe et Cloudinary.
+   `MONGO_URI` et `CLIENT_URL` (URL Vercel). Stripe et Cloudinary sont optionnels : sans Stripe, le site propose le paiement à la livraison.
 3. **Site sur Vercel** : importer le dépôt avec `client` comme Root Directory et définir
    `VITE_API_URL` (`https://<service>.onrender.com/api`), `VITE_SITE_URL` et `VITE_WHATSAPP_NUMBER`.
 4. **Stripe** : Developers > Webhooks > ajouter `https://<service>.onrender.com/api/payments/webhook`

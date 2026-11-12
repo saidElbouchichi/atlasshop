@@ -62,6 +62,7 @@ const regles = {
     body('image.url').optional().isURL({ protocols: ['https'], require_protocol: true }),
   ],
   commande: [
+    body('paymentMethod').optional().isIn(['carte', 'livraison']).withMessage('Moyen de paiement inconnu.'),
     body('items').isArray({ min: 1, max: 50 }).withMessage('Le panier est vide.'),
     body('items.*.product').isMongoId().withMessage('Produit invalide.'),
     body('items.*.qty').isInt({ min: 1, max: 99 }).withMessage('Quantité invalide.').toInt(),
@@ -115,6 +116,7 @@ routes.get('/orders/:id', protect, idMongo(), valider, commandes.lireCommande)
 routes.put('/orders/:id/status', reserveAdmin, idMongo(), body('status').isString(), valider, commandes.changerStatut)
 
 // --- paiement et images ---
+routes.get('/payments/methods', paiements.moyensDePaiement)
 routes.post('/payments/create-checkout-session', protect, body('orderId').isMongoId().withMessage('Commande invalide.'), valider, paiements.creerSessionPaiement)
 routes.post('/upload', reserveAdmin, televersement.array('images', NOMBRE_MAX_IMAGES), paiements.televerserImages)
 

@@ -7,10 +7,12 @@ export const chargerMesCommandes = creerAppel('orders/mesCommandes', async () =>
 export const chargerCommandes = creerAppel('orders/toutes', async () => (await requete({ url: '/orders' })).data)
 export const chargerCommande = creerAppel('orders/une', async (id) => (await requete({ url: `/orders/${id}` })).data)
 
-// Crée la commande puis ouvre le paiement. Retourne { commande, url, simule } :
-// `url` est la page Stripe Checkout, ou la confirmation si le paiement est simulé (développement sans clé Stripe).
-export const passerCommande = creerAppel('orders/passer', async ({ items, shippingAddress }) => {
-  const { data: commande } = await requete({ url: '/orders', method: 'post', data: { items, shippingAddress } })
+// Crée la commande puis, par carte, ouvre le paiement. Retourne { commande, url, simule } :
+// `url` est la page Stripe Checkout ; il est nul si la commande se règle à la livraison,
+// et `simule` est vrai si le paiement est simulé (développement sans clé Stripe).
+export const passerCommande = creerAppel('orders/passer', async ({ items, shippingAddress, paymentMethod }) => {
+  const { data: commande } = await requete({ url: '/orders', method: 'post', data: { items, shippingAddress, paymentMethod } })
+  if (paymentMethod === 'livraison') return { commande, url: null, simule: false }
   const { data: paiement } = await requete({ url: '/payments/create-checkout-session', method: 'post', data: { orderId: commande._id } })
   return { commande, ...paiement }
 })
