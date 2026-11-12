@@ -49,6 +49,12 @@ describe('cartSlice', () => {
     expect(etat.items[0].qty).toBe(2)
   })
 
+  test('refuse un produit en rupture de stock', () => {
+    const etat = reducer(panierVide, ajouterAuPanier({ produit: { ...tapis, stock: 0 } }))
+
+    expect(etat.items).toEqual([])
+  })
+
   test('borne la quantité modifiée entre 1 et le stock', () => {
     const depart = reducer(panierVide, ajouterAuPanier({ produit: tapis }))
 
@@ -101,8 +107,9 @@ describe('chargerPanier', () => {
   })
 
   test('écarte les articles mal formés', () => {
-    const valide = { product: 'p1', name: 'Tapis', price: 3400, qty: 1 }
-    const stocke = JSON.stringify([valide, { product: 'p2', qty: -3 }, null, 'intrus'])
+    const valide = { product: 'p1', name: 'Tapis', slug: 'tapis', image: { id: 'photo-1', alt: 'Tapis' }, price: 3400, qty: 1 }
+    const sansImage = { product: 'p3', name: 'Bol', slug: 'bol', price: 180, qty: 1 }
+    const stocke = JSON.stringify([valide, { product: 'p2', qty: -3 }, sansImage, null, 'intrus'])
 
     expect(chargerPanier(fauxStockage(stocke))).toEqual([valide])
   })

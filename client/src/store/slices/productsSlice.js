@@ -1,4 +1,4 @@
-import { createSlice } from '@reduxjs/toolkit'
+import { createSelector, createSlice } from '@reduxjs/toolkit'
 import { avisParProduit } from '../../data/mock'
 import { products } from '../../data/products'
 
@@ -45,8 +45,10 @@ const productsSlice = createSlice({
 export const { ajouterProduit, modifierProduit, supprimerProduit, ajouterAvis } = productsSlice.actions
 
 export const selectProduits = (state) => state.products.items
-export const selectProduitsVedettes = (state) =>
-  state.products.items.filter((produit) => produit.isFeatured)
+// Mémoïsé : retourne le même tableau tant que la liste des produits ne change pas
+export const selectProduitsVedettes = createSelector([selectProduits], (produits) =>
+  produits.filter((produit) => produit.isFeatured),
+)
 export const selectProduitParSlug = (slug) => (state) =>
   state.products.items.find((produit) => produit.slug === slug)
 

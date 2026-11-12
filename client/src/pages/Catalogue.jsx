@@ -70,13 +70,18 @@ export default function Catalogue() {
   const charge = useChargementSimule(parametres.toString())
 
   const modifier = (changements, { garderPage = false } = {}) => {
-    const suivants = new URLSearchParams(parametres)
-    Object.entries(changements).forEach(([cle, valeur]) => {
-      if (valeur === '' || valeur === null || valeur === undefined) suivants.delete(cle)
-      else suivants.set(cle, String(valeur))
-    })
-    if (!garderPage) suivants.delete('page')
-    setParametres(suivants, { replace: true })
+    setParametres(
+      (actuels) => {
+        const suivants = new URLSearchParams(actuels)
+        Object.entries(changements).forEach(([cle, valeur]) => {
+          if (valeur === '' || valeur === null || valeur === undefined) suivants.delete(cle)
+          else suivants.set(cle, String(valeur))
+        })
+        if (!garderPage) suivants.delete('page')
+        return suivants
+      },
+      { replace: true },
+    )
   }
 
   // La recherche n'est envoyée dans l'URL qu'après une courte pause de frappe

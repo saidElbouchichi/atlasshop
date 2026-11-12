@@ -12,6 +12,8 @@ const DECALAGE_ENTRE_CARTES = 0.1
 // Les fines lignes entre les cartes viennent du fond « sable » visible dans l'espace de 1px.
 export default function GrilleProduits({ produits }) {
   const refGrille = useRef(null)
+  // L'animation ne rejoue que si les produits affichés changent, pas à chaque mise à jour du store
+  const cleProduits = produits.map((produit) => produit._id).join(',')
 
   useLayoutEffect(() => {
     const media = gsap.matchMedia()
@@ -48,7 +50,7 @@ export default function GrilleProduits({ produits }) {
     )
 
     return () => media.revert()
-  }, [produits])
+  }, [cleProduits])
 
   return (
     <div

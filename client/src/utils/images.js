@@ -19,4 +19,4 @@ export function sourcesPhoto(image, largeur = 800) {
   return { src: urlPhoto(image.id, largeur), srcSet: srcSetPhoto(image.id) }
 }
 
-export const cleImage = (image) => image.id ?? image.url
+export const cleImage = (image) => image.cle ?? image.id ?? image.url

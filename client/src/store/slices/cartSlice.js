@@ -9,6 +9,8 @@ function estArticleValide(article) {
     article &&
     typeof article.product === 'string' &&
     typeof article.name === 'string' &&
+    typeof article.slug === 'string' &&
+    Boolean(article.image?.id || article.image?.url) &&
     Number.isFinite(article.price) &&
     Number.isInteger(article.qty) &&
     article.qty >= QUANTITE_MIN
@@ -27,7 +29,7 @@ export function chargerPanier(stockage = globalThis.localStorage) {
 }
 
 function borner(quantite, stock) {
-  const max = Number.isInteger(stock) && stock > 0 ? stock : Infinity
+  const max = Number.isInteger(stock) ? Math.max(QUANTITE_MIN, stock) : Infinity
   return Math.max(QUANTITE_MIN, Math.min(quantite, max))
 }
 
@@ -38,6 +40,8 @@ const cartSlice = createSlice({
   reducers: {
     ajouterAuPanier(state, action) {
       const { produit, qty = 1 } = action.payload
+      // Rupture de stock : rien à ajouter
+      if (Number.isInteger(produit.stock) && produit.stock <= 0) return
       const existant = state.items.find((article) => article.product === produit._id)
       if (existant) {
         existant.qty = borner(existant.qty + qty, existant.stock)

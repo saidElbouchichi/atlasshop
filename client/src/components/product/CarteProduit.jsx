@@ -44,9 +44,10 @@ export default function CarteProduit({ produit }) {
             <button
               type="button"
               onClick={() => ajouter(produit)}
-              className="btn flex-1 border-brun px-3 group-hover:border-ambre group-hover:bg-ambre"
+              disabled={produit.stock <= 0}
+              className="btn flex-1 border-brun px-3 disabled:opacity-40 group-hover:border-ambre group-hover:bg-ambre"
             >
-              Ajouter au panier
+              {produit.stock > 0 ? 'Ajouter au panier' : 'Épuisé'}
             </button>
             <Link
               to={lienFiche}

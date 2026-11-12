@@ -18,6 +18,7 @@ export default function EcranChargement() {
     bloquerDefilement()
     const minuterie = window.setTimeout(() => {
       marquerIntroVue()
+      debloquerDefilement()
       setVisible(false)
     }, DUREE_CHARGEMENT * 1000)
 

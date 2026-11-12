@@ -35,7 +35,8 @@ export function marquerIntroVue() {
 
 // Délai (en secondes) avant de lancer l'intro d'une page, selon ce qui la recouvre à cet instant
 export function delaiIntro() {
+  // L'intro n'est marquée « vue » qu'à la fin de l'écran de chargement : tant qu'il joue, on l'attend
+  if (chargementActif && !introDejaVue()) return DUREE_CHARGEMENT
   const premierAffichage = performance.now() < FENETRE_PREMIER_AFFICHAGE_MS
-  if (!premierAffichage) return DUREE_RIDEAU * 0.7
-  return chargementActif ? DUREE_CHARGEMENT : 0.1
+  return premierAffichage ? 0.1 : DUREE_RIDEAU * 0.7
 }

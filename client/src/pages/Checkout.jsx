@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { nanoid } from '@reduxjs/toolkit'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, useNavigate } from 'react-router-dom'
@@ -26,10 +26,14 @@ export default function Checkout() {
   const articles = useSelector(selectArticles)
   const [commandeEnvoyee, setCommandeEnvoyee] = useState(null)
   const [paiementEnCours, setPaiementEnCours] = useState(false)
+  const minuteriePaiement = useRef(null)
+
+  // Si l'on quitte la page pendant le paiement simulé, il est annulé
+  useEffect(() => () => window.clearTimeout(minuteriePaiement.current), [])
 
   const payer = (adresse) => {
     setPaiementEnCours(true)
-    window.setTimeout(() => {
+    minuteriePaiement.current = window.setTimeout(() => {
       const commande = creerCommande({ id: `cmd-${nanoid(8)}`, articles, adresse, utilisateur })
       dispatch(ajouterCommande(commande))
       setCommandeEnvoyee(commande._id)

@@ -50,8 +50,8 @@ function CarteVariante({ produit }) {
       </dl>
 
       <div className="mt-8 flex flex-col gap-2 sm:flex-row">
-        <button type="button" onClick={() => ajouter(produit)} className="btn btn-plein flex-1">
-          Ajouter au panier
+        <button type="button" onClick={() => ajouter(produit)} disabled={produit.stock <= 0} className="btn btn-plein flex-1 disabled:opacity-40">
+          {produit.stock > 0 ? 'Ajouter au panier' : 'Épuisé'}
         </button>
         <Link to={lienFiche} className="btn btn-contour flex-1">
           Voir en détail

@@ -1,4 +1,5 @@
 import { useState } from 'react'
+import { nanoid } from '@reduxjs/toolkit'
 import { useSelector } from 'react-redux'
 import { Champ } from '../../components/ui/Formulaire'
 import Photo from '../../components/ui/Photo'
@@ -64,7 +65,7 @@ function EditeurImages({ images, nomProduit, surChangement }) {
     if (acceptes.length < fichiers.length) toast('Images JPG, PNG ou WebP de 2 Mo maximum.', 'erreur')
     try {
       const urls = await Promise.all(acceptes.map(lireFichier))
-      const nouvelles = urls.map((url) => ({ url, alt: nomProduit || 'Photo du produit' }))
+      const nouvelles = urls.map((url) => ({ cle: nanoid(6), url, alt: nomProduit || 'Photo du produit' }))
       surChangement([...images, ...nouvelles].slice(0, NOMBRE_MAX_IMAGES))
     } catch (erreur) {
       toast(erreur.message, 'erreur')
