@@ -1,17 +1,24 @@
 import { useDispatch, useSelector } from 'react-redux'
 import { Link } from 'react-router-dom'
+import { useDefilementDepasse } from '../../hooks/useDefilementDepasse'
 import { selectNombreArticles } from '../../store/slices/cartSlice'
 import { ouvrirMenu, ouvrirPanier } from '../../store/slices/uiSlice'
 import { lienWhatsApp } from '../../utils/whatsapp'
 import { IconePanier, IconeWhatsApp } from '../ui/Icones'
 
-// Header fin et fixe : MENU à gauche, logo espacé au centre, WhatsApp et panier à droite
+// Header fin et fixe : MENU à gauche, logo + « ATLASSHOP » au centre, WhatsApp et panier à droite.
+// Au scroll, le header se réduit et le logo passe de 40 à 32 px.
 export default function Header() {
   const dispatch = useDispatch()
   const nombreArticles = useSelector(selectNombreArticles)
+  const reduit = useDefilementDepasse()
 
   return (
-    <header className="fixed inset-x-0 top-0 z-40 h-entete border-b border-sable bg-creme/90 backdrop-blur-md">
+    <header
+      className={`fixed inset-x-0 top-0 z-40 border-b border-sable bg-creme/90 backdrop-blur-md transition-[height] duration-500 ease-luxe ${
+        reduit ? 'h-14' : 'h-entete'
+      }`}
+    >
       <div className="grid h-full grid-cols-[1fr_auto_1fr] items-center px-gouttiere">
         <button
           type="button"
@@ -22,12 +29,17 @@ export default function Header() {
           Menu
         </button>
 
-        <Link
-          to="/"
-          aria-label="AtlasShop — retour à l'accueil"
-          className="pl-[0.3em] text-[13px] font-medium uppercase tracking-[0.3em] sm:pl-[0.42em] sm:text-[17px] sm:tracking-logo"
-        >
-          AtlasShop
+        <Link to="/" aria-label="AtlasShop — retour à l'accueil" className="flex items-center gap-3">
+          <img
+            src="/logo-marque.webp"
+            alt=""
+            width="63"
+            height="40"
+            className={`w-auto transition-[height] duration-500 ease-luxe ${reduit ? 'h-8' : 'h-10'}`}
+          />
+          <span className="hidden pl-[0.2em] text-[15px] font-medium uppercase tracking-logo sm:block">
+            AtlasShop
+          </span>
         </Link>
 
         <div className="flex items-center gap-2 justify-self-end">

@@ -5,8 +5,8 @@ import { Link } from 'react-router-dom'
 export default function EnConstruction({ titre = 'Bientôt disponible', introuvable = false }) {
   return (
     <section className="flex min-h-[100svh] flex-col justify-center px-gouttiere pb-20 pt-entete">
-      <p className="label flex items-center gap-3 text-taupe">
-        <span className="h-px w-10 bg-taupe" aria-hidden="true" />
+      <p className="label flex items-center gap-3 text-cuivre">
+        <span className="h-px w-10 bg-cuivre" aria-hidden="true" />
         {introuvable ? 'Erreur 404' : 'Atelier en cours'}
       </p>
       <h1 className="mt-8 max-w-5xl text-hero">{introuvable ? 'Cette page s’est égarée dans le souk.' : titre}</h1>

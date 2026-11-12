@@ -49,6 +49,33 @@ export function IconeFermer(props) {
   )
 }
 
+export function IconeInstagram(props) {
+  return (
+    <svg {...base} {...props}>
+      <rect x="4" y="4" width="16" height="16" rx="4" />
+      <circle cx="12" cy="12" r="3.6" />
+      <path d="M16.6 7.4h.01" />
+    </svg>
+  )
+}
+
+export function IconeFacebook(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M14 8.5V7a1.5 1.5 0 0 1 1.5-1.5H17V3h-2a4 4 0 0 0-4 4v1.5H9V11h2v10h3V11h2.5l.5-2.5H14z" />
+    </svg>
+  )
+}
+
+export function IconeTikTok(props) {
+  return (
+    <svg {...base} {...props}>
+      <path d="M14 4v10.5a3.5 3.5 0 1 1-3.5-3.5" />
+      <path d="M14 4c.3 2.4 1.8 4 4.5 4.3" />
+    </svg>
+  )
+}
+
 export function IconeMain(props) {
   return (
     <svg {...base} {...props}>

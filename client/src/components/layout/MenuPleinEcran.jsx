@@ -6,6 +6,7 @@ import { useOverlay } from '../../hooks/useOverlay'
 import { fermerMenu, selectMenuOuvert } from '../../store/slices/uiSlice'
 import { deuxChiffres } from '../../utils/format'
 import { lienWhatsApp } from '../../utils/whatsapp'
+import { FiligraneEtoile } from '../ui/Etoile'
 
 const LIENS = [
   { vers: '/', texte: 'Accueil' },
@@ -53,6 +54,7 @@ export default function MenuPleinEcran() {
           exit="sortie"
           className="fixed inset-0 z-50 flex flex-col overflow-y-auto bg-brun text-creme"
         >
+          <FiligraneEtoile className="-bottom-32 -right-32 h-[560px] w-[560px]" />
           <div className="grid h-entete shrink-0 grid-cols-[1fr_auto_1fr] items-center border-b border-creme/15 px-gouttiere">
             <button
               type="button"
@@ -81,7 +83,7 @@ export default function MenuPleinEcran() {
                       onClick={fermer}
                       className="group flex items-baseline gap-6 py-3 transition-colors duration-300 hover:text-ambre sm:py-4"
                     >
-                      <span className="label w-8 text-taupe">{deuxChiffres(position + 1)}</span>
+                      <span className="label w-8 text-dune">{deuxChiffres(position + 1)}</span>
                       <span className="text-[clamp(36px,7vw,88px)] leading-none tracking-[-0.04em] transition-transform duration-500 ease-luxe group-hover:translate-x-3">
                         {lien.texte}
                       </span>

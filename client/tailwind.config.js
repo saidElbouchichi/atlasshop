@@ -3,14 +3,17 @@ export default {
   content: ['./index.html', './src/**/*.{js,jsx}'],
   theme: {
     extend: {
-      // Palette AtlasShop : uniquement des tons chauds, jamais de bleu ni de gris froid
+      // Palette relevée à la pipette sur le logo (brun, ambre, ivoire, cuivre, dune) ;
+      // crème et beige restent les fonds de page et de cartes. Jamais de bleu ni de gris froid.
       colors: {
         creme: '#F5EFE6',
         beige: '#EFE6D8',
-        brun: '#27221A',
-        ambre: '#D2942D',
+        brun: '#2A1509',
+        ambre: '#EC9226',
         sable: '#D9CDBB',
-        taupe: '#8A7A66',
+        ivoire: '#FCE8CA',
+        dune: '#C18750',
+        cuivre: '#81461B',
       },
       fontFamily: {
         sans: ['"Inter Tight"', 'system-ui', 'sans-serif'],
@@ -28,7 +31,7 @@ export default {
       },
       spacing: {
         gouttiere: 'clamp(20px, 4vw, 64px)',
-        entete: '64px',
+        entete: '72px',
       },
       borderRadius: {
         DEFAULT: '4px',

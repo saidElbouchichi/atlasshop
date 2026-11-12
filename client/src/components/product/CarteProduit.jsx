@@ -25,13 +25,13 @@ export default function CarteProduit({ produit }) {
         </h3>
         <p className="mt-2 text-[20px] tracking-[-0.01em] text-ambre">{formaterPrix(produit.price)}</p>
 
-        <p className="label mt-6 text-taupe">Description :</p>
+        <p className="label mt-6 text-cuivre">Description :</p>
         <p className="mt-1.5 line-clamp-3 text-label uppercase text-brun/80">{produit.description}</p>
 
         <dl className="mt-6 grid grid-cols-2 gap-x-4 gap-y-4 border-t border-sable pt-5">
           {produit.specs.map((caracteristique) => (
             <div key={caracteristique.label}>
-              <dt className="text-mini uppercase text-taupe">{caracteristique.label}</dt>
+              <dt className="text-mini uppercase text-cuivre">{caracteristique.label}</dt>
               <dd className="mt-0.5 text-[13px] leading-snug">{caracteristique.value}</dd>
             </div>
           ))}

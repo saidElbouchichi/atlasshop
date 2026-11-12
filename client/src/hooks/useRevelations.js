@@ -14,6 +14,7 @@ const DEPART_SCROLL = 'top 88%'
 //   data-reveal        -> fondu montant
 //   data-reveal-clip   -> révélation par clip-path (images)
 //   data-parallaxe     -> léger déplacement vertical lié au scroll
+//   data-vague         -> trait de vague SVG qui se dessine (stroke-dashoffset)
 export function useRevelations(refSection) {
   useLayoutEffect(() => {
     const media = gsap.matchMedia()
@@ -40,6 +41,20 @@ export function useRevelations(refSection) {
               duration: 1.4,
               ease: 'power4.inOut',
               scrollTrigger: { trigger: element, start: DEPART_SCROLL, once: true },
+            },
+          )
+        })
+
+        gsap.utils.toArray('[data-vague]', refSection.current).forEach((element) => {
+          gsap.fromTo(
+            element,
+            { strokeDashoffset: 1 },
+            {
+              strokeDashoffset: 0,
+              duration: 1.4,
+              delay: 0.3,
+              ease: 'power2.inOut',
+              scrollTrigger: { trigger: element, start: 'top 92%', once: true },
             },
           )
         })

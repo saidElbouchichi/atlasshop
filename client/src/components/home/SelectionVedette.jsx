@@ -16,8 +16,8 @@ export default function SelectionVedette() {
     <section ref={refSection} aria-labelledby="titre-selection" className="px-gouttiere py-20 lg:py-28">
       <div className="flex flex-col gap-6 lg:flex-row lg:items-end lg:justify-between">
         <div>
-          <p data-reveal className="label flex items-center gap-3 text-taupe">
-            <span className="h-px w-10 bg-taupe" aria-hidden="true" />
+          <p data-reveal className="label flex items-center gap-3 text-cuivre">
+            <span className="h-px w-10 bg-cuivre" aria-hidden="true" />
             La sélection · {deuxChiffres(produits.length)} pièces
           </p>
           <h2 id="titre-selection" data-reveal className="mt-6 max-w-3xl text-titre">

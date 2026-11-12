@@ -275,6 +275,59 @@ export const products = [
     artisan: 'Savonnerie Dar Zitoun',
     isFeatured: false,
   },
+  {
+    _id: 'p11',
+    name: 'Lanterne Fassia',
+    subtitle: 'Laiton ciselé et verre',
+    slug: 'lanterne-fassia',
+    description:
+      "Lanterne en laiton ciselé à la main par les dinandiers de Fès. Ses ajours projettent une dentelle de lumière sur les murs.",
+    price: 540,
+    category: 'decoration',
+    images: [
+      photo('1778486897678-b0bd710edf5a', 'Lanterne marocaine en métal accrochée à un mur ocre'),
+      photo('1786437548087-3ff73341a247', 'Petite lanterne posée dans une niche claire'),
+      photo('1779599790541-2f50889661ed', 'Lanterne ajourée allumée dans la pénombre'),
+    ],
+    specs: [
+      { label: 'Dimensions', value: 'H 42 × Ø 18 cm' },
+      { label: 'Matière', value: 'Laiton & verre' },
+      { label: 'Origine', value: 'Fès' },
+      { label: 'Fait main', value: 'Oui · ciselé main' },
+    ],
+    stock: 11,
+    rating: 4.7,
+    numReviews: 19,
+    artisan: 'Dinanderie Seffarine',
+    isFeatured: false,
+  },
+  {
+    _id: 'p12',
+    name: 'Panier Doum',
+    subtitle: 'Palmier nain tressé',
+    slug: 'panier-doum',
+    description:
+      "Panier tressé en feuilles de palmier doum par les vannières d'Essaouira. Léger, solide, idéal pour le rangement ou le marché.",
+    price: 260,
+    category: 'decoration',
+    images: [
+      photo('1626037235530-fe56de7d6459', 'Paniers tressés clairs empilés sur fond blanc'),
+      photo('1455669175216-9017c9b02fc6', 'Paniers et corbeilles en fibres naturelles vus de dessus'),
+      photo('1567696154083-9547fd0c8e1d', 'Corbeilles tressées accrochées à un mur blanc'),
+      photo('1586802005224-03286636cbca', 'Panier en osier garni de fleurs blanches'),
+    ],
+    specs: [
+      { label: 'Dimensions', value: 'Ø 35 × H 30 cm' },
+      { label: 'Matière', value: 'Palmier doum' },
+      { label: 'Origine', value: 'Essaouira' },
+      { label: 'Fait main', value: 'Oui · tressé main' },
+    ],
+    stock: 22,
+    rating: 4.5,
+    numReviews: 14,
+    artisan: 'Coopérative Tamount',
+    isFeatured: false,
+  },
 ]
 
 export const produitsVedettes = products.filter((produit) => produit.isFeatured)

@@ -32,7 +32,7 @@ function CarteVariante({ produit }) {
       <div className="mt-8 flex items-start justify-between gap-6">
         <div>
           <h4 className="text-[22px] uppercase leading-tight tracking-[0.02em]">{produit.name}</h4>
-          <p className="mt-1 text-taupe">{produit.subtitle}</p>
+          <p className="mt-1 text-cuivre">{produit.subtitle}</p>
         </div>
         <p className="shrink-0 text-[22px] tracking-[-0.01em] text-ambre">{formaterPrix(produit.price)}</p>
       </div>
@@ -43,7 +43,7 @@ function CarteVariante({ produit }) {
             key={caracteristique.label}
             className="flex items-baseline justify-between gap-4 border-b border-sable py-3"
           >
-            <dt className="text-mini uppercase text-taupe">{caracteristique.label}</dt>
+            <dt className="text-mini uppercase text-cuivre">{caracteristique.label}</dt>
             <dd className="text-right text-[14px]">{caracteristique.value}</dd>
           </div>
         ))}
@@ -70,8 +70,8 @@ export default function ProduitPhare() {
     <section ref={refSection} aria-labelledby="titre-phare">
       <div className="grid grid-cols-1 lg:grid-cols-2">
         <div className="flex flex-col justify-between gap-16 px-gouttiere py-20 lg:py-28">
-          <p data-reveal className="label flex items-center gap-3 text-taupe">
-            <span className="h-px w-10 bg-taupe" aria-hidden="true" />
+          <p data-reveal className="label flex items-center gap-3 text-cuivre">
+            <span className="h-px w-10 bg-cuivre" aria-hidden="true" />
             Pièce phare · Moyen Atlas
           </p>
 
@@ -113,7 +113,7 @@ export default function ProduitPhare() {
           <h3 data-reveal className="text-sous-titre">
             Choisissez votre pièce
           </h3>
-          <p data-reveal className="label text-taupe">
+          <p data-reveal className="label text-cuivre">
             02 formats · nouage main
           </p>
         </div>

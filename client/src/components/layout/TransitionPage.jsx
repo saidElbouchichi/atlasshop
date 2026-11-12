@@ -1,7 +1,7 @@
 import { motion } from 'framer-motion'
+import { DUREE_RIDEAU } from '../../utils/intro'
 
 const COURBE = [0.76, 0, 0.24, 1]
-export const DUREE_RIDEAU = 0.75
 
 // Transition entre pages : le contenu passe en fondu sous un rideau ambre
 // qui se lève à l'entrée et remonte à la sortie.

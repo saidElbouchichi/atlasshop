@@ -35,7 +35,7 @@ function LignePanier({ article }) {
             type="button"
             onClick={() => dispatch(retirerDuPanier(article.product))}
             aria-label={`Retirer ${article.name} du panier`}
-            className="text-taupe transition-colors hover:text-brun"
+            className="text-cuivre transition-colors hover:text-brun"
           >
             <IconeFermer width={14} height={14} />
           </button>
@@ -112,7 +112,7 @@ export default function TiroirPanier() {
             {articles.length === 0 ? (
               <div className="flex flex-1 flex-col items-start justify-center gap-6 px-6">
                 <p className="text-sous-titre">Votre panier est vide.</p>
-                <p className="max-w-xs text-taupe">
+                <p className="max-w-xs text-cuivre">
                   Chaque pièce est façonnée à la main : prenez le temps de choisir la vôtre.
                 </p>
                 <Link to="/catalogue" onClick={fermer} className="btn btn-plein">
@@ -128,10 +128,10 @@ export default function TiroirPanier() {
                 </ul>
                 <div className="shrink-0 border-t border-sable bg-beige px-6 py-6">
                   <div className="flex items-baseline justify-between">
-                    <span className="label text-taupe">Sous-total</span>
+                    <span className="label text-cuivre">Sous-total</span>
                     <span className="text-[22px] tracking-[-0.02em]">{formaterPrix(sousTotal)}</span>
                   </div>
-                  <p className="mt-1 text-[13px] text-taupe">Livraison calculée à l'étape suivante.</p>
+                  <p className="mt-1 text-[13px] text-cuivre">Livraison calculée à l'étape suivante.</p>
                   <Link to="/checkout" onClick={fermer} className="btn btn-plein mt-5 w-full">
                     Commander
                   </Link>

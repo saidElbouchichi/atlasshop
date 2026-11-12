@@ -1,12 +1,14 @@
-import { useLayoutEffect, useRef } from 'react'
+import { useLayoutEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { Link } from 'react-router-dom'
 import { CLIP_CACHE, CLIP_VISIBLE, MOUVEMENT_AUTORISE } from '../../hooks/useRevelations'
-import { DUREE_RIDEAU } from '../layout/TransitionPage'
+import { delaiIntro } from '../../utils/intro'
 import Compteur from '../ui/Compteur'
+import Etoile from '../ui/Etoile'
 import { IconeFleche } from '../ui/Icones'
 import Photo from '../ui/Photo'
+import { SoulignementVague } from '../ui/Vague'
 
 gsap.registerPlugin(ScrollTrigger)
 
@@ -28,13 +30,12 @@ const CHIFFRES = [
   { valeur: 4.9, suffixe: ' / 5', texte: 'Avis clients', decimales: 1 },
 ]
 
-// On attend la fin du rideau de transition avant de lancer l'intro
-const DELAI_INTRO = DUREE_RIDEAU * 0.7
-
 // Hero multi-couches : titre révélé mot par mot, photo dévoilée par clip-path,
 // parallaxe souris + scroll sur la photo et les éléments décoratifs, CTA en fondu.
 export default function Hero() {
   const refHero = useRef(null)
+  // On attend la fin de l'écran de chargement (ou du rideau de transition) avant de lancer l'intro
+  const [delai] = useState(delaiIntro)
 
   useLayoutEffect(() => {
     const media = gsap.matchMedia()
@@ -42,7 +43,7 @@ export default function Hero() {
     media.add(
       MOUVEMENT_AUTORISE,
       () => {
-        const intro = gsap.timeline({ delay: DELAI_INTRO, defaults: { ease: 'power3.out' } })
+        const intro = gsap.timeline({ delay: delai, defaults: { ease: 'power3.out' } })
         intro
           .fromTo(
             '[data-hero-cadre]',
@@ -54,6 +55,12 @@ export default function Hero() {
           .from('[data-hero-mot]', { yPercent: 115, duration: 1.1, stagger: 0.09, ease: 'power4.out' }, 0.2)
           .from('[data-hero-fondu]', { autoAlpha: 0, y: 24, duration: 0.9, stagger: 0.12 }, 0.9)
           .from('[data-hero-flottant]', { autoAlpha: 0, y: 60, duration: 1.2 }, 1)
+          .fromTo(
+            '[data-vague]',
+            { strokeDashoffset: 1 },
+            { strokeDashoffset: 0, duration: 1.2, ease: 'power2.inOut' },
+            1.1,
+          )
           .from('[data-hero-cta]', { autoAlpha: 0, duration: 1.2, ease: 'power2.out' }, 1.5)
 
         // Parallaxe au scroll : la photo glisse plus lentement que la page
@@ -92,7 +99,7 @@ export default function Hero() {
     )
 
     return () => media.revert()
-  }, [])
+  }, [delai])
 
   return (
     <section
@@ -100,21 +107,24 @@ export default function Hero() {
       className="relative grid min-h-[100svh] grid-cols-1 border-b border-sable pt-entete lg:grid-cols-12"
     >
       {/* Colonne texte */}
-      <div className="flex flex-col px-gouttiere pb-8 pt-10 lg:col-span-7 lg:pt-14">
-        <p data-hero-fondu className="label flex items-center gap-3 text-taupe">
-          <span className="h-px w-10 bg-taupe" aria-hidden="true" />
+      <div className="flex flex-col px-gouttiere pb-[clamp(64px,9vw,140px)] pt-10 lg:col-span-7 lg:pt-14">
+        <p data-hero-fondu className="label flex items-center gap-3 text-cuivre">
+          <span className="h-px w-10 bg-cuivre" aria-hidden="true" />
           Artisanat marocain · Collection 2026
         </p>
 
         <h1 className="mt-8 text-hero lg:mt-auto">
           {MOTS_DU_TITRE.map((mot) => (
-            <span key={mot} className="mr-[0.22em] inline-block overflow-hidden pb-[0.12em] align-bottom">
-              <span
-                data-hero-mot
-                className={`inline-block ${MOTS_ACCENTUES.has(mot) ? 'text-ambre' : ''}`}
-              >
-                {mot}
+            <span key={mot} className="relative mr-[0.22em] inline-block align-bottom">
+              <span className="inline-block overflow-hidden pb-[0.12em] align-bottom">
+                <span
+                  data-hero-mot
+                  className={`inline-block ${MOTS_ACCENTUES.has(mot) ? 'text-ambre' : ''}`}
+                >
+                  {mot}
+                </span>
               </span>
+              {MOTS_ACCENTUES.has(mot) && <SoulignementVague className="text-ambre" />}
             </span>
           ))}
         </h1>
@@ -138,10 +148,10 @@ export default function Hero() {
                   valeur={chiffre.valeur}
                   suffixe={chiffre.suffixe}
                   decimales={chiffre.decimales}
-                  delai={DELAI_INTRO + 1}
+                  delai={delai + 1}
                 />
               </dd>
-              <dt className="label mt-2 text-taupe">{chiffre.texte}</dt>
+              <dt className="label mt-2 text-cuivre">{chiffre.texte}</dt>
             </div>
           ))}
         </dl>
@@ -194,9 +204,7 @@ export default function Hero() {
                 <textPath href="#cercle-sceau">Fait main au Maroc · Fait main au Maroc ·</textPath>
               </text>
             </svg>
-            <span className="absolute text-[22px] leading-none text-ambre" aria-hidden="true">
-              ✦
-            </span>
+            <Etoile className="absolute h-7 w-7 text-ambre" />
           </div>
           <span className="sr-only">Fait main au Maroc</span>
         </div>

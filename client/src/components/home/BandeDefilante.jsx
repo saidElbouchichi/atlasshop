@@ -1,4 +1,5 @@
 import { categories } from '../../data/categories'
+import Etoile from '../ui/Etoile'
 
 // Bande de texte défilante (marquee) avec les catégories.
 // La piste est dupliquée pour boucler sans couture ; la copie est masquée aux lecteurs d'écran.
@@ -10,9 +11,7 @@ function Piste({ masquee = false }) {
           <span className="px-8 text-[clamp(36px,6vw,88px)] leading-none tracking-[-0.04em] sm:px-12">
             {categorie.name}
           </span>
-          <span className="text-[clamp(18px,2vw,28px)] text-ambre" aria-hidden="true">
-            ✦
-          </span>
+          <Etoile className="h-[clamp(18px,2.2vw,32px)] w-[clamp(18px,2.2vw,32px)] text-ambre" />
         </li>
       ))}
     </ul>

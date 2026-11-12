@@ -1,6 +1,7 @@
 import { AnimatePresence, MotionConfig } from 'framer-motion'
 import { Route, Routes, useLocation } from 'react-router-dom'
 import Footer from './components/layout/Footer'
+import EcranChargement from './components/layout/EcranChargement'
 import Header from './components/layout/Header'
 import MenuPleinEcran from './components/layout/MenuPleinEcran'
 import OngletPromo from './components/layout/OngletPromo'
@@ -37,6 +38,7 @@ export default function App() {
       >
         Aller au contenu
       </a>
+      <EcranChargement />
       <Header />
       <OngletPromo />
       <MenuPleinEcran />
@@ -44,7 +46,7 @@ export default function App() {
       <Curseur />
 
       <div id="contenu">
-        <AnimatePresence mode="wait" onExitComplete={revenirEnHaut}>
+        <AnimatePresence mode="wait" initial={false} onExitComplete={revenirEnHaut}>
           <Routes location={location} key={location.pathname}>
             <Route path="/" element={avecTransition(<Accueil />)} />
             {PAGES_A_VENIR.map((page) => (

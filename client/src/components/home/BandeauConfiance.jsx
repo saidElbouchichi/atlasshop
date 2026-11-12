@@ -1,7 +1,9 @@
 import { useRef } from 'react'
 import { useRevelations } from '../../hooks/useRevelations'
 import { lienWhatsApp } from '../../utils/whatsapp'
+import { FiligraneEtoile } from '../ui/Etoile'
 import { IconeCadenas, IconeLivraison, IconeMain, IconeWhatsApp } from '../ui/Icones'
+import { MotVague } from '../ui/Vague'
 
 const ENGAGEMENTS = [
   {
@@ -27,10 +29,11 @@ export default function BandeauConfiance() {
   useRevelations(refSection)
 
   return (
-    <section ref={refSection} aria-labelledby="titre-confiance" className="bg-brun text-creme">
-      <div className="flex flex-col gap-10 px-gouttiere py-20 lg:flex-row lg:items-end lg:justify-between lg:py-28">
+    <section ref={refSection} aria-labelledby="titre-confiance" className="relative overflow-hidden bg-brun text-creme">
+      <FiligraneEtoile />
+      <div className="relative flex flex-col gap-10 px-gouttiere py-20 lg:flex-row lg:items-end lg:justify-between lg:py-28">
         <h2 id="titre-confiance" data-reveal className="max-w-4xl text-titre">
-          Une question&nbsp;? Un <span className="text-ambre">artisan</span> vous répond.
+          Une question&nbsp;? Un <MotVague>artisan</MotVague> vous répond.
         </h2>
         <a
           data-reveal
@@ -44,7 +47,7 @@ export default function BandeauConfiance() {
         </a>
       </div>
 
-      <ul className="grid grid-cols-1 border-t border-creme/15 md:grid-cols-3">
+      <ul className="relative grid grid-cols-1 border-t border-creme/15 md:grid-cols-3">
         {ENGAGEMENTS.map(({ Icone, titre, texte }) => (
           <li
             key={titre}
